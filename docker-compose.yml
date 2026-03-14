@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  # La Base de Datos
+  db:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_DB: vulnshield_db
+      POSTGRES_USER: jade
+      POSTGRES_PASSWORD: "123456"
+    ports:
+      - "5433:5432" # Mapea el 5432 interno al 5433 de tu laptop
+
+  # Tu Escáner (Web)
+  web:
+    build: .
+    ports:
+      - "5000:5000"
+    volumes:
+      - .:/app # ESTA ES LA MAGIA: Sincroniza los cambios de código en vivo
+    environment:
+      - DB_HOST=db
+      - DB_NAME=vulnshield_db
+      - DB_USER=jade
+      - DB_PASSWORD=123456
+      - DB_PORT=5432
+    depends_on:
+      - db
