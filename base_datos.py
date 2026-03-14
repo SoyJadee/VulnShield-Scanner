@@ -1,11 +1,18 @@
+import os
 import psycopg2
 
+# Configuración híbrida (Laptop vs Docker)
 DB_CONFIG = {
-    "dbname": "vulnshield_db",
-    "user": "jade",
-    "password": "123456",
-    "host": "localhost",
-    "port": "5433"
+    # os.getenv("VARIABLE", "VALOR_POR_DEFECTO")
+    "dbname": os.getenv("DB_NAME", "vulnshield_db"),
+    "user": os.getenv("DB_USER", "jade"),
+    "password": os.getenv("DB_PASSWORD", "123456"),
+
+    # Si detecta que está en Docker, usará 'db'. Si no, usará 'localhost'
+    "host": os.getenv("DB_HOST", "localhost"),
+
+    # Si detecta que está en Docker, usará '5432'. Si no, usará '5433' (tu puerto local)
+    "port": os.getenv("DB_PORT", "5433")
 }
 
 
@@ -13,7 +20,8 @@ def conectar():
     try:
         return psycopg2.connect(**DB_CONFIG)
     except Exception as e:
-        print(f"Error de base de datos: {e}")
+        # Esto te dirá exactamente a qué host está intentando conectar
+        print(f"Error de base de datos (Host: {DB_CONFIG.get('host')}): {e}")
         return None
 
 

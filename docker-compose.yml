@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # La Base de Datos
   db:
@@ -10,7 +8,7 @@ services:
       POSTGRES_USER: jade
       POSTGRES_PASSWORD: "123456"
     ports:
-      - "5433:5432" # Mapea el 5432 interno al 5433 de tu laptop
+      - "5433:5432" # 5433 es para tu laptop, 5432 es el que Postgres necesita adentro
 
   # Tu Escáner (Web)
   web:
@@ -18,12 +16,12 @@ services:
     ports:
       - "5000:5000"
     volumes:
-      - .:/app # ESTA ES LA MAGIA: Sincroniza los cambios de código en vivo
+      - .:/app 
     environment:
       - DB_HOST=db
       - DB_NAME=vulnshield_db
       - DB_USER=jade
       - DB_PASSWORD=123456
-      - DB_PORT=5432
+      - DB_PORT=5432 # El puerto interno siempre debe ser 5432
     depends_on:
       - db
