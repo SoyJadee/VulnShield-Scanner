@@ -12,7 +12,7 @@ DB_CONFIG = {
     "host": os.getenv("DB_HOST", "localhost"),
 
     # Si detecta que está en Docker, usará '5432'. Si no, usará '5433' (tu puerto local)
-    "port": os.getenv("DB_PORT", "5433")
+    "port": os.getenv("DB_PORT", "5432")
 }
 
 
