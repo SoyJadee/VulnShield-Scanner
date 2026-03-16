@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Acceso Dual - VulnShield</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #form-toggle:checked ~ .form-container { transform: translateX(-50%); }
+        #form-toggle:checked ~ .switch-wrapper .switch-label .switch-ball { transform: translateX(100%); }
+        #form-toggle:checked ~ .switch-wrapper .switch-label .text-login { opacity: 0.5; }
+        #form-toggle:checked ~ .switch-wrapper .switch-label .text-register { opacity: 1; }
+        
+        .form-container {
+            width: 200%;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .show-popup {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            pointer-events: auto !important;
+        }
+    </style>
+</head>
+<body class="bg-[#020617] min-h-screen flex items-center justify-center p-4 font-sans text-white">
+
+    <div class="w-full max-w-md bg-[#0f172a] rounded-2xl shadow-2xl overflow-hidden border border-slate-800">
+        <input type="checkbox" id="form-toggle" class="hidden">
+        
+        <div class="switch-wrapper flex flex-col items-center pt-8 pb-4">
+            <div class="switch-label flex items-center bg-slate-950 w-72 h-14 rounded-full relative p-1 border border-slate-700">
+                <div class="switch-ball absolute w-[140px] h-12 bg-blue-600 rounded-full transition-transform duration-300 ease-in-out"></div>
+                <button id="btn-entrar" type="button" class="text-login z-10 w-1/2 text-center font-semibold transition-opacity duration-300">Inicio de Sesión</button>
+                <button id="btn-registro" type="button" class="text-register z-10 w-1/2 text-center font-semibold opacity-50 transition-opacity duration-300">Registro</button>
+            </div>
+        </div>
+
+        <div class="form-container flex">
+            <div class="w-1/2 p-8 pt-4">
+                <h2 class="text-2xl font-bold mb-6 text-center">Bienvenido</h2>
+                <form class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Usuario</label>
+                        <input type="text" maxlength="20" class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="tu_usuario">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Contraseña</label>
+                        <div class="relative">
+                            <input id="login-password" type="password" maxlength="20" class="w-full px-4 py-3 pr-12 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="••••••••">
+                            <button id="toggle-login-password" type="button" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-sky-300 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-all">Iniciar Sesión</button>
+                </form>
+            </div>
+
+            <div class="w-1/2 p-8 pt-4">
+                <h2 class="text-2xl font-bold mb-6 text-center">Crea tu cuenta</h2>
+                <form id="register-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Nombre Completo</label>
+                        <input type="text" maxlength="20" class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="Mari">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm text-slate-400 mb-1">Correo</label>
+                        <input id="reg-email" type="email" maxlength="20" class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="correo@ejemplo.com">
+                        <p id="reg-email-error" class="mt-2 text-[10px] text-red-400 hidden">
+                            Ingrese un formato de correo válido.
+                        </p>
+                    </div>
+                    
+                    <div class="relative">
+                        <label class="block text-sm text-slate-400 mb-1">Contraseña</label>
+                        
+                        <div id="password-popup" class="absolute bottom-full left-0 mb-2 w-full p-3 bg-blue-900 border border-blue-400 rounded-lg text-xs shadow-xl opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 z-50">
+                            <p class="font-bold mb-1 text-blue-200">Requisitos (Máx. 20 carac.):</p>
+                            <ul class="space-y-1">
+                                <li id="req-length" class="text-red-400">• Entre 8 y 20 caracteres</li>
+                                <li id="req-special" class="text-red-400">• Un carácter especial</li>
+                                <li id="req-case" class="text-red-400">• Mayúscula y minúscula</li>
+                            </ul>
+                            <div class="absolute top-full left-6 -mt-1 border-8 border-transparent border-t-blue-900"></div>
+                        </div>
+
+                        <div class="relative">
+                            <input id="reg-password" type="password" maxlength="20" class="w-full px-4 py-3 pr-12 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="••••••••">
+                            <button id="toggle-register-password" type="button" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-sky-300 transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                                </svg>
+                            </button>
+                        </div>
+                        <p id="reg-password-error" class="mt-2 text-[10px] text-red-400 hidden">
+                            La contraseña no es válida.
+                        </p>
+                    </div>
+
+                    <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-all shadow-lg shadow-blue-900/20">
+                        Registrarse
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const formToggle = document.getElementById('form-toggle');
+        const btnEntrar = document.getElementById('btn-entrar');
+        const btnRegistro = document.getElementById('btn-registro');
+        const loginPassword = document.getElementById('login-password');
+        const toggleLoginPassword = document.getElementById('toggle-login-password');
+        const regPassword = document.getElementById('reg-password');
+        const regEmail = document.getElementById('reg-email');
+        const regEmailError = document.getElementById('reg-email-error');
+        const toggleRegisterPassword = document.getElementById('toggle-register-password');
+        const passwordPopup = document.getElementById('password-popup');
+        const reqLength = document.getElementById('req-length');
+        const reqSpecial = document.getElementById('req-special');
+        const reqCase = document.getElementById('req-case');
+        const registerForm = document.getElementById('register-form');
+        const regPasswordError = document.getElementById('reg-password-error');
+
+        function validateEmail(email) {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+
+        function validateRegisterPassword(value) {
+            const hasLength = value.length >= 8 && value.length <= 20;
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(value);
+            const hasCase = /[a-z]/.test(value) && /[A-Z]/.test(value);
+            return { hasLength, hasSpecial, hasCase, isValid: hasLength && hasSpecial && hasCase };
+        }
+
+        function setErrorStyle(element, errorElement, isError) {
+            if (isError) {
+                errorElement.classList.remove('hidden');
+                element.classList.add('border-red-500');
+            } else {
+                errorElement.classList.add('hidden');
+                element.classList.remove('border-red-500');
+                element.classList.add('border-slate-700');
+            }
+        }
+
+        function bindPasswordToggle(buttonElement, inputElement) {
+            buttonElement.addEventListener('click', function() {
+                const isHidden = inputElement.type === 'password';
+                inputElement.type = isHidden ? 'text' : 'password';
+                buttonElement.classList.toggle('text-sky-300', isHidden);
+            });
+        }
+
+        btnEntrar.addEventListener('click', () => formToggle.checked = false);
+        btnRegistro.addEventListener('click', () => formToggle.checked = true);
+        bindPasswordToggle(toggleLoginPassword, loginPassword);
+        bindPasswordToggle(toggleRegisterPassword, regPassword);
+
+        regEmail.addEventListener('input', function() {
+            setErrorStyle(this, regEmailError, this.value.length > 0 && !validateEmail(this.value));
+        });
+
+        regPassword.addEventListener('focus', () => passwordPopup.classList.add('show-popup'));
+        regPassword.addEventListener('blur', () => passwordPopup.classList.remove('show-popup'));
+
+        regPassword.addEventListener('input', function() {
+            const v = validateRegisterPassword(this.value);
+            v.hasLength ? reqLength.classList.replace('text-red-400', 'text-emerald-400') : reqLength.classList.replace('text-emerald-400', 'text-red-400');
+            v.hasSpecial ? reqSpecial.classList.replace('text-red-400', 'text-emerald-400') : reqSpecial.classList.replace('text-emerald-400', 'text-red-400');
+            v.hasCase ? reqCase.classList.replace('text-red-400', 'text-emerald-400') : reqCase.classList.replace('text-emerald-400', 'text-red-400');
+            setErrorStyle(this, regPasswordError, this.value.length > 0 && !v.isValid);
+        });
+
+        registerForm.addEventListener('submit', function(e) {
+            const isEmailValid = validateEmail(regEmail.value);
+            const isPassValid = validateRegisterPassword(regPassword.value).isValid;
+            if (!isEmailValid || !isPassValid) {
+                e.preventDefault();
+                setErrorStyle(regEmail, regEmailError, !isEmailValid);
+                setErrorStyle(regPassword, regPasswordError, !isPassValid);
+                if (!isEmailValid) regEmail.focus(); else regPassword.focus();
+            }
+        });
+    </script>
+</body>
+</html>

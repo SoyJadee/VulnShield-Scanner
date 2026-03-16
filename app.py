@@ -159,5 +159,15 @@ def verificar_url():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/admin')
+def admin():
+    return render_template('admin.html')
+
+
+@app.route('/inisesion')
+def inisesion():
+    return render_template('inisesion.html')
+
+
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
