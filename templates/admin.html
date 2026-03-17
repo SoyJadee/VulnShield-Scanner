@@ -78,18 +78,19 @@
             </div>
         </div>
 
+        <!-- CARDS DE ESTADÍSTICAS (DINÁMICAS) -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="bg-[#0f172a] p-6 rounded-2xl border border-slate-800 hover:border-sky-500/50 transition">
                 <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Usuarios en la Plataforma</p>
-                <h3 class="text-4xl font-black mt-2">1,284</h3>
+                <h3 class="text-4xl font-black mt-2" id="total-usuarios">0</h3>
                 <div class="mt-4 flex items-center gap-2">
-                    <span class="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-1 rounded-full font-bold">+5.4%</span>
-                    <span class="text-slate-500 text-[10px]">vs mes anterior</span>
+                    <span class="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-1 rounded-full font-bold" id="porcentaje-usuarios">+0%</span>
+                    <span class="text-slate-500 text-[10px]" id="nuevos-usuarios">vs mes anterior</span>
                 </div>
             </div>
             <div class="bg-[#0f172a] p-6 rounded-2xl border border-slate-800 hover:border-sky-500/50 transition">
                 <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Vulnerabilidades Críticas</p>
-                <h3 class="text-4xl font-black mt-2 text-red-500">24</h3>
+                <h3 class="text-4xl font-black mt-2 text-red-500" id="vulnerabilidades-criticas">0</h3>
                 <div class="mt-4 flex items-center gap-2">
                     <span class="bg-red-500/20 text-red-400 text-[10px] px-2 py-1 rounded-full font-bold">Alerta</span>
                     <span class="text-slate-500 text-[10px]">Requieren acción</span>
@@ -97,14 +98,15 @@
             </div>
             <div class="bg-[#0f172a] p-6 rounded-2xl border border-slate-800 hover:border-sky-500/50 transition">
                 <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Total Links Escaneados</p>
-                <h3 class="text-4xl font-black mt-2 text-sky-400">14,202</h3>
+                <h3 class="text-4xl font-black mt-2 text-sky-400" id="total-links">0</h3>
                 <div class="mt-4 flex items-center gap-2">
-                    <span class="text-slate-500 text-[10px]">Últimas 24 horas: 842</span>
+                    <span class="text-slate-500 text-[10px]" id="links-hoy">Últimas 24 horas: 0</span>
                 </div>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- GRÁFICA DE FRECUENCIA (SOLO SQLi y XSS) -->
             <div class="bg-[#0f172a] p-6 rounded-2xl border border-slate-800">
                 <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
                     <span class="w-2 h-2 bg-sky-400 rounded-full"></span>
@@ -115,56 +117,15 @@
                 </div>
             </div>
 
+            <!-- ESCANEOS RECIENTES (DINÁMICO) -->
             <div class="bg-[#0f172a] p-6 rounded-2xl border border-slate-800">
                 <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
                     <span class="w-2 h-2 bg-emerald-400 rounded-full"></span>
                     Escaneos Recientes
                 </h2>
-                <div class="custom-scrollbar space-y-3 max-h-[300px] overflow-y-auto pr-1">
-                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-                        <p class="text-sm font-semibold text-sky-300 break-all">https://tienda-demo.com/login</p>
-                        <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                            <span>Fecha: 15/03/2026</span>
-                            <span>Hora: 08:42</span>
-                            <span class="px-2 py-1 rounded-full bg-red-500/20 text-red-400 font-bold">Crítico</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-                        <p class="text-sm font-semibold text-sky-300 break-all">https://api.empresa.net/search?q=test</p>
-                        <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                            <span>Fecha: 15/03/2026</span>
-                            <span>Hora: 09:15</span>
-                            <span class="px-2 py-1 rounded-full bg-orange-500/20 text-orange-400 font-bold">Alto</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-                        <p class="text-sm font-semibold text-sky-300 break-all">https://portal-clientes.org/profile</p>
-                        <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                            <span>Fecha: 14/03/2026</span>
-                            <span>Hora: 18:27</span>
-                            <span class="px-2 py-1 rounded-full bg-yellow-500/20 text-yellow-300 font-bold">Medio</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-                        <p class="text-sm font-semibold text-sky-300 break-all">https://intranet.segura.local/dashboard</p>
-                        <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                            <span>Fecha: 14/03/2026</span>
-                            <span>Hora: 16:03</span>
-                            <span class="px-2 py-1 rounded-full bg-sky-500/20 text-sky-300 font-bold">Bajo</span>
-                        </div>
-                    </div>
-
-                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
-                        <p class="text-sm font-semibold text-sky-300 break-all">https://blog-pruebas.dev/comments</p>
-                        <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
-                            <span>Fecha: 13/03/2026</span>
-                            <span>Hora: 11:50</span>
-                            <span class="px-2 py-1 rounded-full bg-emerald-500/20 text-emerald-400 font-bold">Sin riesgo</span>
-                        </div>
-                    </div>
+                <div id="escaneos-recientes" class="custom-scrollbar space-y-3 max-h-[300px] overflow-y-auto pr-1">
+                    <!-- Se llena dinámicamente con JavaScript -->
+                    <div class="text-center text-slate-500 py-8">Cargando datos...</div>
                 </div>
             </div>
         </div>
@@ -172,30 +133,121 @@
     </main>
 
     <script>
-        const chartOptions = {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: { labels: { color: 'white', font: { family: 'sans-serif', size: 12 } } }
-            }
-        };
+        // Variables globales para los gráficos
+        let threatChart = null;
 
-        // Gráfica circular: frecuencia de amenazas por tipo
-        const ctxThreatTypes = document.getElementById('threatTypePieChart').getContext('2d');
-        new Chart(ctxThreatTypes, {
-            type: 'doughnut',
-            data: {
-                labels: ['SQLi', 'XSS', 'LFI', 'RCE', 'CSRF'],
-                datasets: [{
-                    data: [65, 45, 20, 10, 32],
-                    backgroundColor: ['#ef4444', '#f97316', '#eab308', '#38bdf8', '#22c55e'],
-                    borderWidth: 0,
-                    hoverOffset: 10
-                }]
-            },
-            options: chartOptions
+        // Función para cargar datos desde la API
+        async function cargarDatosDashboard() {
+            try {
+                const response = await fetch('/api/dashboard-data');
+                const data = await response.json();
+                
+                if (data.error) {
+                    console.error('Error:', data.error);
+                    return;
+                }
+                
+                // Actualizar cards
+                document.getElementById('total-usuarios').textContent = data.usuarios?.total || 0;
+                const porcentaje = ((data.usuarios?.nuevos || 0) / (data.usuarios?.total || 1) * 100).toFixed(1);
+                document.getElementById('porcentaje-usuarios').textContent = `+${porcentaje}%`;
+                document.getElementById('nuevos-usuarios').textContent = `${data.usuarios?.nuevos || 0} nuevos`;
+                
+                document.getElementById('vulnerabilidades-criticas').textContent = data.vulnerabilidades_criticas || 0;
+                document.getElementById('total-links').textContent = data.links_escaneados?.total || 0;
+                document.getElementById('links-hoy').textContent = `Últimas 24 horas: ${data.links_escaneados?.hoy || 0}`;
+                
+                // Actualizar gráfica
+                actualizarGrafica(data.frecuencia_tipos || []);
+                
+                // Actualizar lista de escaneos recientes
+                actualizarEscaneosRecientes(data.escaneos_recientes || []);
+                
+            } catch (error) {
+                console.error('Error cargando datos:', error);
+            }
+        }
+
+        function actualizarGrafica(frecuenciaTipos) {
+            const ctx = document.getElementById('threatTypePieChart').getContext('2d');
+            
+            // Destruir gráfica anterior si existe
+            if (threatChart) {
+                threatChart.destroy();
+            }
+            
+            // Preparar datos para la gráfica
+            const tipos = frecuenciaTipos.map(item => item[0]);
+            const valores = frecuenciaTipos.map(item => parseInt(item[1]) || 0);
+            
+            // Colores para SQLi y XSS
+            const colores = {
+                'SQL Injection': '#ef4444',
+                'XSS': '#f97316'
+            };
+            
+            const backgroundColor = tipos.map(tipo => colores[tipo] || '#94a3b8');
+            
+            threatChart = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: tipos,
+                    datasets: [{
+                        data: valores,
+                        backgroundColor: backgroundColor,
+                        borderWidth: 0,
+                        hoverOffset: 10
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: {
+                                color: 'white',
+                                font: { family: 'sans-serif', size: 12 }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function actualizarEscaneosRecientes(escaneos) {
+            const contenedor = document.getElementById('escaneos-recientes');
+            
+            if (!escaneos || escaneos.length === 0) {
+                contenedor.innerHTML = '<div class="text-center text-slate-500 py-8">No hay escaneos recientes</div>';
+                return;
+            }
+            
+            let html = '';
+            escaneos.forEach(scan => {
+                html += `
+                    <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
+                        <p class="text-sm font-semibold text-sky-300 break-all">${scan.url}</p>
+                        <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+                            <span>Fecha: ${scan.fecha}</span>
+                            <span>Hora: ${scan.hora}</span>
+                            <span class="px-2 py-1 rounded-full ${scan.severidad_clase} font-bold">${scan.severidad_texto}</span>
+                            <span class="text-slate-500">(${scan.total} vuln)</span>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            contenedor.innerHTML = html;
+        }
+
+        // Cargar datos al iniciar
+        document.addEventListener('DOMContentLoaded', () => {
+            cargarDatosDashboard();
+            // Recargar cada 30 segundos
+            setInterval(cargarDatosDashboard, 30000);
         });
 
+        // Menu de usuario (sin cambios)
         const userMenuTrigger = document.getElementById('user-menu-trigger');
         const userMenu = document.getElementById('user-menu');
 

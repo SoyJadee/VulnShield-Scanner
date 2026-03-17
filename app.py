@@ -8,32 +8,18 @@ base_datos.inicializar_db()
 
 
 def normalizar_url(protocolo_seleccionado, url_ingresada):
-    """
-    Construye la URL respetando SIEMPRE el protocolo seleccionado por el usuario.
-    Si el usuario incluyó http:// o https:// en la URL, se ELIMINA y se usa el seleccionado.
-    
-    Ejemplos:
-    - protocolo='https://', url_ingresada='ejemplo.com' -> 'https://ejemplo.com'
-    - protocolo='https://', url_ingresada='http://ejemplo.com' -> 'https://ejemplo.com'
-    - protocolo='http://', url_ingresada='https://ejemplo.com' -> 'http://ejemplo.com'
-    """
-    # Limpiar espacios
+    """Construye la URL respetando SIEMPRE el protocolo seleccionado"""
     url_ingresada = url_ingresada.strip()
     
-    # PASO 1: Eliminar cualquier protocolo que el usuario haya escrito
-    # Quitar http:// o https:// del inicio si existen
     if url_ingresada.startswith(('http://', 'https://')):
-        # Encontrar dónde termina el protocolo (después de '://')
         pos_protocolo = url_ingresada.find('://') + 3
         url_sin_protocolo = url_ingresada[pos_protocolo:]
-        print(f"🔄 Protocolo detectado en URL ingresada, eliminado: {url_ingresada} -> {url_sin_protocolo}")
+        print(f"🔄 Protocolo detectado, eliminado: {url_ingresada} -> {url_sin_protocolo}")
     else:
         url_sin_protocolo = url_ingresada
     
-    # PASO 2: Aplicar el protocolo seleccionado por el usuario
     url_final = f"{protocolo_seleccionado}{url_sin_protocolo}"
-    
-    print(f"✅ URL normalizada: {url_final} (usando protocolo seleccionado: {protocolo_seleccionado})")
+    print(f"✅ URL normalizada: {url_final}")
     
     return url_final
 
@@ -55,24 +41,30 @@ def dashboard():
     protocolo_usado = "No especificado"
     
     if request.method == 'POST':
-        # Obtener datos del formulario
-        protocolo = request.form.get('protocolo', 'https://')  # Por defecto HTTPS
+        protocolo = request.form.get('protocolo', 'https://')
         url_ingresada = request.form.get('url', '')
         
-        # NUEVA: Limpiar cualquier protocolo que el usuario haya escrito
-        # y aplicar el protocolo seleccionado
         url_objetivo = normalizar_url(protocolo, url_ingresada)
         protocolo_usado = obtener_protocolo_desde_url(url_objetivo)
         
-        print(f"🔍 Escaneando: {url_objetivo} (Protocolo elegido: {protocolo}, Protocolo final: {protocolo_usado})")
+        print(f"🔍 Escaneando: {url_objetivo}")
         
         # Ejecutar escaneo
         resultados = motor_escaneo.iniciar_escaneo_completo(url_objetivo)
         
-        # Guardar hallazgos
+        # Guardar hallazgos usando la nueva función
         for res in resultados:
             if res['tipo'] != "Ninguna detectada":
-                base_datos.guardar_hallazgo(url_objetivo, res['tipo'])
+                # Extraer tipo limpio (sin el payload)
+                tipo_vuln = res['tipo'].split(' - ')[0].split('(')[0].strip()
+                if 'SQL' in tipo_vuln:
+                    tipo_limpio = 'SQL Injection'
+                elif 'XSS' in tipo_vuln:
+                    tipo_limpio = 'XSS'
+                else:
+                    tipo_limpio = tipo_vuln
+                
+                base_datos.guardar_hallazgo(url_objetivo, tipo_limpio)
     
     return render_template(
         'dashboard.html', 
@@ -80,6 +72,16 @@ def dashboard():
         url_escaneada=url_objetivo,
         protocolo_usado=protocolo_usado
     )
+
+
+# NUEVO ENDPOINT: Obtener datos para el dashboard admin
+@app.route('/api/dashboard-data')
+def api_dashboard_data():
+    """Endpoint que devuelve los datos para el panel de administración"""
+    datos = base_datos.obtener_datos_dashboard()
+    if datos:
+        return jsonify(datos)
+    return jsonify({'error': 'No se pudieron obtener los datos'}), 500
 
 
 @app.route('/api/escanear', methods=['POST'])
@@ -97,19 +99,23 @@ def api_escanear():
         if not url_ingresada:
             return jsonify({'error': 'URL no proporcionada'}), 400
         
-        # Usar la misma función normalizadora
         url_completa = normalizar_url(protocolo, url_ingresada)
         protocolo_usado = obtener_protocolo_desde_url(url_completa)
         
-        print(f"📡 API - Escaneando: {url_completa} (Protocolo: {protocolo_usado})")
+        print(f"📡 API - Escaneando: {url_completa}")
         
-        # Ejecutar escaneo
         resultados = motor_escaneo.iniciar_escaneo_completo(url_completa)
         
-        # Guardar hallazgos
         for res in resultados:
             if res['tipo'] != "Ninguna detectada":
-                base_datos.guardar_hallazgo(url_completa, res['tipo'])
+                if 'SQL' in res['tipo']:
+                    tipo_limpio = 'SQL Injection'
+                elif 'XSS' in res['tipo']:
+                    tipo_limpio = 'XSS'
+                else:
+                    tipo_limpio = res['tipo'].split(' - ')[0]
+                
+                base_datos.guardar_hallazgo(url_completa, tipo_limpio)
         
         return jsonify({
             'url': url_completa,
@@ -130,7 +136,6 @@ def verificar_url():
         protocolo = datos.get('protocolo', 'https://')
         url_ingresada = datos.get('url', '')
         
-        # Normalizar URL igual que en el escaneo
         url_completa = normalizar_url(protocolo, url_ingresada)
         
         try:
