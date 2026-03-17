@@ -1,122 +1,230 @@
 <!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>VulnShield Scanner</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-900 text-white p-8">
-    <div class="max-w-4xl mx-auto bg-gray-800 p-8 rounded shadow-xl">
-        <h1 class="text-3xl font-bold text-blue-500 mb-6">🛡️ VulnShield Scanner</h1>
-        
-        <!-- FORMULARIO MODIFICADO con selector de protocolo -->
-        <form method="POST" class="space-y-4 mb-8">
-            <div class="flex gap-2">
-                <!-- SELECTOR DE PROTOCOLO (NUEVO) -->
-                <select name="protocolo" class="w-24 p-3 rounded bg-gray-700 border border-gray-600 focus:outline-none focus:border-blue-500">
-                    <option value="http://">HTTP</option>
-                    <option value="https://" selected>HTTPS</option>
-                </select>
-                
-                <!-- CAMPO DE URL (solo dominio/ruta) -->
-                <input type="text" 
-                        name="url" 
-                        placeholder="ejemplo.com (se recomienda no incluir http:// o https://)" 
-                        value="{{ url_escaneada.replace('http://', '').replace('https://', '') if url_escaneada else '' }}"
-                        required 
-                        class="flex-1 p-3 rounded bg-gray-700 focus:outline-none focus:border-blue-500 border border-gray-600">
-            </div>
-            
-            <!-- Preview de URL completa -->
-            <p class="text-sm text-gray-400" id="urlPreview">
-                URL completa: 
-                {% if url_escaneada %}
-                    {{ url_escaneada }}
-                {% else %}
-                    https://ejemplo.com
-                {% endif %}
-            </p>
-            
-            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 px-6 py-3 rounded font-bold text-lg">
-                INICIAR ESCANEO
-            </button>
-        </form>
 
-        <!-- RESULTADOS DEL ESCANEO -->
-        {% if resultados %}
-        <div class="bg-gray-700 p-4 rounded">
-            <h2 class="text-xl font-bold text-green-400 mb-4">📊 RESULTADOS DEL ESCANEO</h2>
-            
-            <!-- Información del escaneo -->
-            <div class="mb-4 p-3 bg-gray-600 rounded grid grid-cols-2 gap-4">
-                <div>
-                    <p><strong>URL escaneada:</strong></p>
-                    <p class="text-blue-400 break-all">{{ url_escaneada }}</p>
-                </div>
-                <div>
-                    <p><strong>Protocolo:</strong></p>
-                    <p class="text-blue-400">{{ protocolo_usado }}</p>
-                </div>
-            </div>
-            
-            <!-- Tabla de vulnerabilidades -->
-            <table class="w-full text-left">
-                <thead class="bg-gray-600">
-                    <tr>
-                        <th class="p-3">Tipo</th>
-                        <th class="p-3">Severidad</th>
-                        <th class="p-3">Descripción</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for res in resultados %}
-                    <tr class="border-b border-gray-600">
-                        <td class="p-3 font-medium">{{ res.tipo }}</td>
-                        <td class="p-3">
-                            {% if res.severidad == 'Alta' or res.tipo == 'SQL Injection' %}
-                                <span class="bg-red-600 px-2 py-1 rounded text-xs">🔴 ALTA</span>
-                            {% elif res.severidad == 'Media' or res.tipo == 'XSS' %}
-                                <span class="bg-yellow-600 px-2 py-1 rounded text-xs">🟡 MEDIA</span>
-                            {% elif res.tipo == 'Ninguna detectada' %}
-                                <span class="bg-green-600 px-2 py-1 rounded text-xs">✅ SEGURO</span>
-                            {% else %}
-                                <span class="bg-blue-600 px-2 py-1 rounded text-xs">🔵 BAJA</span>
-                            {% endif %}
-                        </td>
-                        <td class="p-3 text-sm">{{ res.descripcion if res.descripcion else 'Vulnerabilidad detectada' }}</td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            
-            <!-- Resumen -->
-            <div class="mt-4 p-3 bg-gray-600 rounded">
-                {% set total_vuln = resultados|selectattr('tipo', 'ne', 'Ninguna detectada')|list|length %}
-                <p><strong>Total vulnerabilidades:</strong> {{ total_vuln }}</p>
-                {% if total_vuln == 0 %}
-                    <p class="text-green-400">✅ No se detectaron vulnerabilidades</p>
-                {% endif %}
-            </div>
-        </div>
-        {% endif %}
-    </div>
-
-    <!-- JavaScript para preview de URL -->
-    <script>
-        const protocolSelect = document.querySelector('select[name="protocolo"]');
-        const urlInput = document.querySelector('input[name="url"]');
-        const urlPreview = document.getElementById('urlPreview');
-        
-        function actualizarPreview() {
-            const protocolo = protocolSelect.value;
-            const url = urlInput.value || 'ejemplo.com';
-            urlPreview.textContent = `URL completa: ${protocolo}${url}`;
-        }
-        
-        if (protocolSelect && urlInput && urlPreview) {
-            protocolSelect.addEventListener('change', actualizarPreview);
-            urlInput.addEventListener('input', actualizarPreview);
+<html class="dark" lang="es"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>VulnShield Scanner Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "primary": "#38aecc",
+                        "accent-dark": "#046E8F",
+                        "accent-mid": "#0090C1",
+                        "background-dark": "#022F40",
+                        "container-dark": "#183446",
+                        "surface-dark": "#0d212d",
+                    },
+                    fontFamily: {
+                        "display": ["Space Grotesk", "sans-serif"]
+                    },
+                    borderRadius: {
+                        "DEFAULT": "0.125rem",
+                        "lg": "0.25rem",
+                        "xl": "0.5rem",
+                        "full": "0.75rem"
+                    },
+                },
+            },
         }
     </script>
-</body>
-</html>
+<style>
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .status-badge-safe {
+            background-color: #10b981;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+    </style>
+</head>
+<body class="bg-background-dark text-slate-100 min-h-screen">
+<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+<div class="layout-container flex h-full grow flex-col">
+<header class="flex items-center justify-between border-b border-accent-dark/30 px-6 py-4 lg:px-20 bg-container-dark/50 backdrop-blur-md sticky top-0 z-50">
+<div class="flex items-center gap-4">
+<div class="text-primary flex items-center justify-center">
+<span class="material-symbols-outlined text-3xl">shield_with_heart</span>
+</div>
+<h2 class="text-white text-xl font-bold leading-tight tracking-tight">VulnShield Scanner</h2>
+</div>
+<div class="flex items-center gap-6">
+<div class="hidden md:flex gap-4">
+<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-accent-dark/20 text-slate-300 hover:bg-accent-dark/40 transition-colors">
+<span class="material-symbols-outlined">dark_mode</span>
+</button>
+<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-accent-dark/20 text-slate-300 hover:bg-accent-dark/40 transition-colors">
+<span class="material-symbols-outlined">account_circle</span>
+</button>
+</div>
+<div class="h-10 w-10 rounded-full border-2 border-primary/50 bg-cover bg-center" data-alt="User profile avatar with blue border" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAa6t6BSuIKPUoMaE4vVZXU3UWZDPRoqDybKXbAIg8uTLpNk7M-BYbwqEoFsc1zNDAJgZzIpH2RJPg71F9Q-7AlxLBJDnMyLea1L0jY65Iw0Uv3wP2NsuVVt0g29-SBfw-GyQnh9sW6YAvezDv_LwV2KpWvvyqb-Ol9rrtnkUr1W02lJProlwG6UpZBDZb2wQdGsBErK9p12MWWDabGr24g0qr7q6TOMYG10FhA7L6vniGVtIOGjEIiIMHgrrt6zLuudX50aZuI2oGX')"></div>
+</div>
+</header>
+<main class="flex flex-1 flex-col lg:flex-row">
+<aside class="w-full lg:w-64 border-r border-accent-dark/20 p-6 flex flex-col gap-8 bg-container-dark/20">
+<div class="flex items-center gap-3 px-2">
+<div class="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-background-dark">
+<span class="material-symbols-outlined font-bold">radar</span>
+</div>
+<div class="flex flex-col">
+<h1 class="text-white text-sm font-bold">VulnShield Core</h1>
+<p class="text-primary/70 text-xs font-medium">V1.2.0 Enterprise</p>
+</div>
+</div>
+<nav class="flex flex-col gap-2">
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-background-dark font-bold transition-all" href="#">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-sm">Dashboard</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined">document_scanner</span>
+<span class="text-sm">Escaneos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined">description</span>
+<span class="text-sm">Informes</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined">lan</span>
+<span class="text-sm">Activos</span>
+</a>
+<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="#">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-sm">Ajustes</span>
+</a>
+</nav>
+<div class="mt-auto p-4 rounded-xl bg-accent-dark/10 border border-accent-dark/30">
+<p class="text-xs text-slate-400 mb-2">Estado del Sistema</p>
+<div class="flex items-center gap-2">
+<span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+<span class="text-xs font-medium text-slate-200">Operativo</span>
+</div>
+</div>
+</aside>
+<section class="flex-1 p-6 lg:p-10 flex flex-col gap-8">
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+<div>
+<h2 class="text-white text-3xl font-black tracking-tight mb-1">Panel de Control</h2>
+<p class="text-slate-400 text-sm">Monitorización en tiempo real de vulnerabilidades y seguridad de red</p>
+</div>
+</div>
+<div class="grid grid-cols-1 gap-8">
+<!-- Scanner Input Card -->
+<div class="rounded-xl overflow-hidden bg-container-dark border border-accent-dark/30 shadow-2xl flex flex-col items-center justify-center p-8 max-w-4xl mx-auto w-full">
+<div class="flex items-center gap-2 text-primary mb-6">
+<span class="material-symbols-outlined text-3xl">shield</span>
+<h3 class="text-2xl font-bold">VulnShield Scanner</h3>
+</div>
+<div class="w-full space-y-4">
+<div class="flex flex-col md:flex-row gap-0 rounded-lg overflow-hidden border border-accent-dark/50">
+<select class="bg-surface-dark border-none text-slate-200 py-3 px-4 focus:ring-0 cursor-pointer min-w-[120px]">
+<option>HTTPS</option>
+<option>HTTP</option>
+</select>
+<input class="flex-1 bg-surface-dark border-none text-white py-3 px-4 focus:ring-0" placeholder="www.youtube.com/" type="text"/>
+</div>
+<p class="text-xs text-slate-500">URL completa: <span class="text-slate-400">https://www.youtube.com/</span></p>
+<button class="w-full bg-primary hover:bg-primary/90 text-background-dark font-black py-4 rounded-lg transition-transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg uppercase tracking-wide">
+                                INICIAR ESCANEO
+                            </button>
+</div>
+</div>
+<!-- Results Section -->
+<div class="bg-container-dark rounded-xl border border-accent-dark/30 overflow-hidden shadow-lg p-6 max-w-4xl mx-auto w-full">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-primary text-2xl">radar</span>
+<h3 class="text-lg font-bold text-primary uppercase tracking-tight">Resultados del Escaneo</h3>
+</div>
+<div class="space-y-6">
+<!-- URL/Protocol Box -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-accent-dark/30 border border-accent-dark/30 rounded-lg overflow-hidden">
+<div class="bg-surface-dark/50 p-4">
+<p class="text-xs font-bold text-white mb-1">URL escaneada:</p>
+<p class="text-sm text-primary">https://www.youtube.com/</p>
+</div>
+<div class="bg-surface-dark/50 p-4">
+<p class="text-xs font-bold text-white mb-1">Protocolo:</p>
+<p class="text-sm text-primary">HTTPS</p>
+</div>
+</div>
+<!-- Vuln Table -->
+<div class="border border-accent-dark/30 rounded-lg overflow-hidden">
+<table class="w-full text-left">
+<thead>
+<tr class="bg-surface-dark text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-accent-dark/30">
+<th class="px-6 py-3">Tipo</th>
+<th class="px-6 py-3">Severidad</th>
+<th class="px-6 py-3">Descripción</th>
+</tr>
+</thead>
+<tbody class="bg-surface-dark/30">
+<tr class="border-b border-accent-dark/10">
+<td class="px-6 py-4 text-sm text-slate-200">Ninguna detectada</td>
+<td class="px-6 py-4">
+<span class="status-badge-safe">
+<span class="material-symbols-outlined text-[10px]">check</span>
+                                                SEGURO
+                                            </span>
+</td>
+<td class="px-6 py-4 text-sm text-slate-400">Vulnerabilidad detectada</td>
+</tr>
+</tbody>
+</table>
+</div>
+<!-- Summary Box -->
+<div class="bg-surface-dark/50 p-5 rounded-lg border border-accent-dark/30">
+<p class="text-sm font-bold text-white mb-3">Total vulnerabilidades: <span class="text-primary">0</span></p>
+<div class="flex items-center gap-2 text-green-500">
+<span class="material-symbols-outlined text-sm">check_box</span>
+<span class="text-xs font-medium">No se detectaron vulnerabilidades</span>
+</div>
+</div>
+<!-- Report Action -->
+<div class="pt-4 flex justify-end">
+<button class="flex items-center gap-3 px-8 py-3 rounded-xl border-2 border-accent-mid text-accent-mid font-bold hover:bg-accent-mid hover:text-white transition-all text-sm uppercase tracking-wide">
+<span class="material-symbols-outlined">send</span>
+<span>Enviar Informe de Resultados</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Statistics Grid -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto w-full">
+<div class="bg-container-dark p-5 rounded-xl border border-accent-dark/30">
+<div class="flex items-center justify-between mb-2">
+<span class="text-slate-400 text-xs font-bold uppercase tracking-widest">Vulnerabilidades</span>
+<span class="material-symbols-outlined text-red-500">warning</span>
+</div>
+<div class="text-2xl font-bold text-white">42</div>
+<div class="text-xs text-red-400 mt-1">8 Críticas</div>
+</div>
+<div class="bg-container-dark p-5 rounded-xl border border-accent-dark/30">
+<div class="flex items-center justify-between mb-2">
+<span class="text-slate-400 text-xs font-bold uppercase tracking-widest">Escaneos</span>
+<span class="material-symbols-outlined text-accent-mid">history</span>
+</div>
+<div class="text-2xl font-bold text-white">1,208</div>
+<div class="text-xs text-slate-400 mt-1">Último hace 2h</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+</div>
+</div>
+</body></html>
