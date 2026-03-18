@@ -92,25 +92,24 @@
         {% set anillo_color = 'border-emerald-400/40' %}
         {% elif total_hallazgos <= 2 %} {% set riesgo_texto='RIESGO MEDIO' %} {% set riesgo_color='text-yellow-300' %}
             {% set anillo_color='border-yellow-400/40' %} {% else %} {% set riesgo_texto='RIESGO ELEVADO' %} {% set
-            riesgo_color='text-red-300' %} {% set anillo_color='border-red-400/40' %} {% endif %}
+            riesgo_color='text-red-300' %} {% set anillo_color='border-red-400/40' %} {% endif %} <div
+            class="no-print sticky top-0 z-30 bg-slate-900/50 border-b border-slate-800 backdrop-blur-sm">
+            <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
+                <!-- Botón Volver al Historial (izquierda) -->
+                <a href="/escaneos"
+                    class="btn-secondary flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:scale-105">
+                    <span class="text-sm font-semibold">Volver al Historial</span>
+                </a>
 
-            <div class="no-print sticky top-0 z-30 bg-slate-900/50 border-b border-slate-800 backdrop-blur-sm">
-                <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
-                    <!-- Botón Volver al Historial (izquierda) -->
-                    <a href="/escaneos" 
-                       class="btn-secondary flex items-center gap-2 px-4 py-2 rounded-lg transition-all hover:scale-105">
-                        <span class="text-sm font-semibold">Volver al Historial</span>
-                    </a>
-
-                    <!-- Botón Generar PDF (derecha) -->
-                    {% if not modo_pdf and reporte %}
-                    <button id="generatePdfButton" data-escaneo-id="{{ reporte.escaneo_id }}"
-                        class="btn-primary font-extrabold py-2 px-6 rounded-full transition-all shadow-lg flex items-center gap-2">
-                        <span>GENERAR PDF</span>
-                    </button>
-                    {% endif %}
-                </div>
-                <p id="pdfStatus" class="hidden text-xs text-slate-100 text-center pb-2"></p>
+                <!-- Botón Generar PDF (derecha) -->
+                {% if not modo_pdf and reporte %}
+                <button id="generatePdfButton" data-escaneo-id="{{ reporte.escaneo_id }}"
+                    class="btn-primary font-extrabold py-2 px-6 rounded-full transition-all shadow-lg flex items-center gap-2">
+                    <span>GENERAR PDF</span>
+                </button>
+                {% endif %}
+            </div>
+            <p id="pdfStatus" class="hidden text-xs text-slate-100 text-center pb-2"></p>
             </div>
 
             <div class="max-w-4xl mx-auto p-6 md:p-12 bg-ink min-h-screen">
@@ -218,13 +217,20 @@
                             <p class="text-slate-100 text-xs leading-relaxed mb-3">
                                 {{ hallazgo.descripcion or 'Sin descripción disponible para este hallazgo.' }}
                             </p>
-                            {% if hallazgo.parametro or hallazgo.payload %}
+                            {% set tipo_hallazgo = (hallazgo.tipo or '')|lower %}
+                            {% set payload_limpio = (hallazgo.payload or '')|trim %}
+                            {% set payload_valido = payload_limpio and payload_limpio|lower not in ['n/a', 'na', 'none',
+                            'null', '-'] %}
+                            {% set ocultar_payload_reputacion = 'virustotal' in tipo_hallazgo or 'reputation' in
+                            tipo_hallazgo or 'reputacion' in tipo_hallazgo %}
+                            {% set mostrar_payload = payload_valido and not ocultar_payload_reputacion %}
+                            {% if hallazgo.parametro or mostrar_payload %}
                             <div class="btn-primary p-3 rounded-lg border border-slate-800">
                                 <p class="text-[9px] text-slate-100 uppercase font-bold mb-1">Detalle técnico</p>
                                 {% if hallazgo.parametro %}
                                 <p class="text-xs text-white"><strong>Parámetro:</strong> {{ hallazgo.parametro }}</p>
                                 {% endif %}
-                                {% if hallazgo.payload %}
+                                {% if mostrar_payload %}
                                 <p class="text-xs text-white break-all"><strong>Payload:</strong>
                                     <code>{{ hallazgo.payload }}</code>
                                 </p>
@@ -287,6 +293,9 @@
                     if (!btn || !status) return;
 
                     const escaneoId = Number(btn.dataset.escaneoId || 0);
+                    const COOL_DOWN_FALLBACK_SECONDS = 60;
+                    const storageKey = `pdfCooldownUntil:${escaneoId || 'default'}`;
+                    let cooldownTimer = null;
 
                     const setStatus = (text, isError = false) => {
                         status.textContent = text;
@@ -294,9 +303,59 @@
                         status.classList.add(isError ? 'text-red-200' : 'text-green-200');
                     };
 
+                    const getRemainingCooldown = () => {
+                        const until = Number(sessionStorage.getItem(storageKey) || 0);
+                        const now = Date.now();
+                        return Math.max(0, Math.ceil((until - now) / 1000));
+                    };
+
+                    const startCooldown = (seconds) => {
+                        const secs = Number(seconds || 0);
+                        if (!Number.isFinite(secs) || secs <= 0) return;
+
+                        sessionStorage.setItem(storageKey, String(Date.now() + (secs * 1000)));
+
+                        if (cooldownTimer) {
+                            clearInterval(cooldownTimer);
+                            cooldownTimer = null;
+                        }
+
+                        const render = () => {
+                            const remaining = getRemainingCooldown();
+                            if (remaining <= 0) {
+                                btn.disabled = false;
+                                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                                setStatus('Ya puedes generar un nuevo PDF.', false);
+                                if (cooldownTimer) {
+                                    clearInterval(cooldownTimer);
+                                    cooldownTimer = null;
+                                }
+                                return;
+                            }
+
+                            btn.disabled = true;
+                            btn.classList.add('opacity-70', 'cursor-not-allowed');
+                            setStatus(`Generación en cooldown. Intenta nuevamente en ${remaining}s.`, true);
+                        };
+
+                        render();
+                        cooldownTimer = setInterval(render, 1000);
+                    };
+
+                    const cooldownInicial = getRemainingCooldown();
+                    if (cooldownInicial > 0) {
+                        startCooldown(cooldownInicial);
+                    }
+
                     btn.addEventListener('click', async () => {
                         if (!escaneoId) {
                             setStatus('No se encontró un escaneo válido para generar el PDF.', true);
+                            return;
+                        }
+
+                        const remainingCooldown = getRemainingCooldown();
+                        if (remainingCooldown > 0) {
+                            startCooldown(remainingCooldown);
                             return;
                         }
 
@@ -313,16 +372,25 @@
 
                             const data = await response.json().catch(() => ({}));
                             if (!response.ok) {
+                                if (response.status === 429) {
+                                    const retryAfter = Number(data.retry_after || 0) || COOL_DOWN_FALLBACK_SECONDS;
+                                    startCooldown(retryAfter);
+                                    return;
+                                }
                                 setStatus(data.error || 'No se pudo enviar el informe por correo.', true);
                                 return;
                             }
 
                             setStatus(data.mensaje || 'Informe enviado correctamente por correo.');
+                            // En exito no forzamos cooldown local; solo aplicamos si el backend devuelve 429.
+                            sessionStorage.removeItem(storageKey);
                         } catch (_) {
                             setStatus('Error de red al enviar el informe por correo.', true);
                         } finally {
-                            btn.disabled = false;
-                            btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                            if (getRemainingCooldown() <= 0) {
+                                btn.disabled = false;
+                                btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                            }
                         }
                     });
                 })();

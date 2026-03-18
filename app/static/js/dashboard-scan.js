@@ -203,7 +203,7 @@
             statsTotalHallazgos.textContent = String(data.total_hallazgos_bd || 0);
         }
         if (statsCriticas) {
-            statsCriticas.textContent = `${data.total_criticas_bd || 0} Criticas/Altas`;
+            statsCriticas.textContent = `${data.total_criticas_bd || 0} Criticas/Altas (en enlace)`;
         }
         if (statsTotalEscaneos) {
             statsTotalEscaneos.textContent = String(data.total_escaneos_bd || 0);

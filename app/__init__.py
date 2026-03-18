@@ -1,4 +1,4 @@
-from flask import Flask, jsonify, request, render_template
+from flask import Flask, jsonify, request, render_template, redirect, session, url_for
 import os
 import math
 import base_datos
@@ -20,17 +20,28 @@ def create_app():
 
     limiter.init_app(app)
 
-    def _mensaje_limite_amigable(error):
+    def _obtener_retry_after_segundos(error):
         retry_after = getattr(error, 'retry_after', None)
         if retry_after is not None:
             try:
-                segundos = max(1, int(math.ceil(float(retry_after))))
-                return (
-                    'Has realizado varios escaneos en poco tiempo. '
-                    f'Espera {segundos} segundos para volver a intentarlo.'
-                )
+                return max(1, int(math.ceil(float(retry_after))))
             except Exception:
-                pass
+                return None
+        return None
+
+    def _mensaje_limite_amigable(error, path=''):
+        segundos = _obtener_retry_after_segundos(error)
+
+        if path.startswith('/api/reportes/enviar'):
+            if segundos is not None:
+                return f'Ya generaste un PDF hace poco. Espera {segundos} segundos para volver a enviarlo.'
+            return 'Ya generaste un PDF hace poco. Espera un momento para volver a enviarlo.'
+
+        if segundos is not None:
+            return (
+                'Has realizado varios escaneos en poco tiempo. '
+                f'Espera {segundos} segundos para volver a intentarlo.'
+            )
 
         return (
             'Has realizado varios escaneos en poco tiempo. '
@@ -39,9 +50,15 @@ def create_app():
 
     @app.errorhandler(429)
     def manejar_rate_limit(e):
-        mensaje = _mensaje_limite_amigable(e)
+        path = request.path or ''
+        mensaje = _mensaje_limite_amigable(e, path=path)
+        retry_after_segundos = _obtener_retry_after_segundos(e)
+
         if request.path.startswith('/api/'):
-            return jsonify({'error': mensaje}), 429
+            payload = {'error': mensaje}
+            if retry_after_segundos is not None:
+                payload['retry_after'] = retry_after_segundos
+            return jsonify(payload), 429
 
         return render_template(
             'dashboard.html',
@@ -53,6 +70,69 @@ def create_app():
             url_escaneada='',
             protocolo_usado='No especificado',
         ), 429
+
+    rutas_protegidas_prefijos = (
+        '/dashboard',
+        '/escaneos',
+        '/configuracion',
+        '/admin',
+        '/admin_home',
+        '/reportes',
+        '/api/',
+    )
+
+    @app.before_request
+    def proteger_rutas_sesion():
+        path = request.path or ''
+
+        # Permitir recursos publicos y de sesion
+        if path.startswith('/static/'):
+            return None
+        if path in (
+            '/',
+            '/inisesion',
+            '/recuperar-contrasena',
+            '/api/auth/login',
+            '/api/auth/registro',
+            '/api/auth/recuperar-contrasena',
+            '/api/auth/recuperacion-estado',
+            '/api/auth/restablecer-contrasena',
+            '/logout',
+        ):
+            return None
+
+        requiere_sesion = any(path.startswith(prefijo)
+                              for prefijo in rutas_protegidas_prefijos)
+        if not requiere_sesion:
+            return None
+
+        if not session.get('admin_id'):
+            if path.startswith('/api/'):
+                return jsonify({'error': 'No autorizado'}), 401
+            return redirect(url_for('auth.inisesion'))
+
+        return None
+
+    @app.after_request
+    def deshabilitar_cache_en_rutas_protegidas(response):
+        path = request.path or ''
+        rutas_no_cache = (
+            '/dashboard',
+            '/escaneos',
+            '/configuracion',
+            '/admin',
+            '/admin_home',
+            '/reportes',
+            '/api/',
+            '/logout',
+        )
+
+        if any(path.startswith(prefijo) for prefijo in rutas_no_cache):
+            response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            response.headers['Pragma'] = 'no-cache'
+            response.headers['Expires'] = '0'
+
+        return response
 
     try:
         base_datos.inicializar_db()

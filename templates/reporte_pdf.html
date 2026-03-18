@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Informe de Seguridad - VulnShield</title>
+    <style>
+        @page {
+            size: A4;
+            margin: 24px;
+        }
+
+        body {
+            font-family: Helvetica, Arial, sans-serif;
+            font-size: 11px;
+            color: #0f172a;
+            line-height: 1.45;
+        }
+
+        .header {
+            background: #0b3b52;
+            color: #ffffff;
+            padding: 14px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 0;
+        }
+
+        .subtitle {
+            margin: 4px 0 0 0;
+            font-size: 11px;
+            color: #cdeaf5;
+        }
+
+        .meta-table,
+        .summary-table,
+        .vuln-table,
+        .types-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .meta-table td {
+            padding: 6px 8px;
+            border: 1px solid #d9e5ec;
+        }
+
+        .section {
+            margin-top: 14px;
+            border: 1px solid #d9e5ec;
+            border-radius: 8px;
+            padding: 10px 12px;
+        }
+
+        .section h2 {
+            margin: 0 0 8px 0;
+            font-size: 14px;
+            color: #0b3b52;
+        }
+
+        .summary-table td {
+            width: 25%;
+            border: 1px solid #d9e5ec;
+            padding: 10px;
+            text-align: center;
+            vertical-align: middle;
+        }
+
+        .kpi-label {
+            color: #475569;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .kpi-value {
+            display: block;
+            margin-top: 3px;
+            font-size: 18px;
+            font-weight: bold;
+            color: #0f172a;
+        }
+
+        .risk-low {
+            color: #16a34a;
+            font-weight: bold;
+        }
+
+        .risk-medium {
+            color: #d97706;
+            font-weight: bold;
+        }
+
+        .risk-high {
+            color: #dc2626;
+            font-weight: bold;
+        }
+
+        .chart-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .chart-table td {
+            padding: 6px 4px;
+            vertical-align: middle;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        .chart-label {
+            color: #334155;
+            font-weight: bold;
+            font-size: 11px;
+        }
+
+        .chart-track-text {
+            font-family: Courier, monospace;
+            letter-spacing: 1.2px;
+            font-size: 11px;
+            display: inline-block;
+        }
+
+        .chart-filled {
+            font-weight: bold;
+        }
+
+        .chart-empty {
+            color: #cbd5e1;
+        }
+
+        .bar-critico {
+            color: #dc2626;
+        }
+
+        .bar-alto {
+            color: #ea580c;
+        }
+
+        .bar-medio {
+            color: #d97706;
+        }
+
+        .bar-bajo {
+            color: #0284c7;
+        }
+
+        .chart-value {
+            color: #334155;
+            font-size: 10px;
+            text-align: right;
+        }
+
+        .vuln-table th,
+        .vuln-table td,
+        .types-table th,
+        .types-table td {
+            border: 1px solid #d9e5ec;
+            padding: 6px 7px;
+            vertical-align: top;
+        }
+
+        .vuln-table th,
+        .types-table th {
+            background: #f1f5f9;
+            color: #0f172a;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .badge {
+            display: inline-block;
+            border-radius: 999px;
+            padding: 2px 7px;
+            font-size: 9px;
+            font-weight: bold;
+            color: #ffffff;
+        }
+
+        .sev-critico {
+            background: #dc2626;
+        }
+
+        .sev-alto {
+            background: #ea580c;
+        }
+
+        .sev-medio {
+            background: #d97706;
+        }
+
+        .sev-bajo {
+            background: #0284c7;
+        }
+
+        .sev-otro {
+            background: #475569;
+        }
+
+        .recommendations {
+            margin: 0;
+            padding-left: 18px;
+        }
+
+        .recommendations li {
+            margin-bottom: 6px;
+        }
+
+        .footer {
+            margin-top: 14px;
+            text-align: center;
+            color: #64748b;
+            font-size: 9px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <p class="title">Informe de Seguridad VulnShield</p>
+        <p class="subtitle">Resumen ejecutivo y recomendaciones para mitigación de vulnerabilidades</p>
+    </div>
+
+    <table class="meta-table">
+        <tr>
+            <td><strong>ID Escaneo:</strong> #{{ reporte.escaneo_id }}</td>
+            <td><strong>Fecha:</strong> {{ reporte.fecha.strftime('%d/%m/%Y %H:%M') if reporte.fecha else '-' }}</td>
+        </tr>
+        <tr>
+            <td><strong>Usuario:</strong> {{ reporte.usuario }}</td>
+            <td><strong>Destino informe:</strong> {{ reporte.correo }}</td>
+        </tr>
+        <tr>
+            <td colspan="2"><strong>URL analizada:</strong> {{ reporte.url }}</td>
+        </tr>
+    </table>
+
+    <div class="section">
+        <h2>Resumen Ejecutivo</h2>
+        <table class="summary-table">
+            <tr>
+                <td>
+                    <span class="kpi-label">Puntaje</span>
+                    <span class="kpi-value">{{ resumen.puntaje }}/100</span>
+                </td>
+                <td>
+                    <span class="kpi-label">Riesgo</span>
+                    {% if resumen.riesgo == 'Bajo' %}
+                    <span class="kpi-value risk-low">{{ resumen.riesgo }}</span>
+                    {% elif resumen.riesgo == 'Medio' %}
+                    <span class="kpi-value risk-medium">{{ resumen.riesgo }}</span>
+                    {% else %}
+                    <span class="kpi-value risk-high">{{ resumen.riesgo }}</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <span class="kpi-label">Hallazgos</span>
+                    <span class="kpi-value">{{ resumen.total_hallazgos }}</span>
+                </td>
+                <td>
+                    <span class="kpi-label">Sev. Críticas/Altas</span>
+                    <span class="kpi-value">{{ resumen.severidades.Critico + resumen.severidades.Alto }}</span>
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Gráfica de Severidad (Estilo Apex)</h2>
+        <table class="chart-table">
+            {% for item in resumen.grafica %}
+            <tr>
+                <td width="20%" class="chart-label">{{ item.nombre }}</td>
+                <td width="60%">
+                    <span class="chart-track-text">
+                        <span class="chart-filled {{ item.clase_barra }}">{{ '■' * item.bloques_llenos }}</span><span
+                            class="chart-empty">{{ '■' * item.bloques_vacios }}</span>
+                    </span>
+                </td>
+                <td width="20%" class="chart-value">{{ item.valor }} ({{ item.porcentaje }}%)</td>
+            </tr>
+            {% endfor %}
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Vulnerabilidades más Frecuentes</h2>
+        <table class="types-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Frecuencia</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if resumen.top_tipos %}
+                {% for tipo, cantidad in resumen.top_tipos %}
+                <tr>
+                    <td>{{ tipo }}</td>
+                    <td>{{ cantidad }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="2">Sin hallazgos registrados.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Detalle Técnico</h2>
+        <table class="vuln-table">
+            <thead>
+                <tr>
+                    <th>Tipo</th>
+                    <th>Severidad</th>
+                    <th>Descripción</th>
+                    <th>Parámetro</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if reporte.hallazgos %}
+                {% for hallazgo in reporte.hallazgos %}
+                {% set sev = (hallazgo.severidad or 'Otro') %}
+                {% set sev_key = (sev|lower) %}
+                {% if sev_key in ['critico', 'crítico'] %}
+                {% set sev_clase = 'sev-critico' %}
+                {% elif sev_key in ['alto', 'alta'] %}
+                {% set sev_clase = 'sev-alto' %}
+                {% elif sev_key == 'medio' %}
+                {% set sev_clase = 'sev-medio' %}
+                {% elif sev_key == 'bajo' %}
+                {% set sev_clase = 'sev-bajo' %}
+                {% else %}
+                {% set sev_clase = 'sev-otro' %}
+                {% endif %}
+                <tr>
+                    <td>{{ hallazgo.tipo }}</td>
+                    <td><span class="badge {{ sev_clase }}">{{ sev }}</span></td>
+                    <td>{{ hallazgo.descripcion or 'Sin descripción' }}</td>
+                    <td>{{ hallazgo.parametro or '-' }}</td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr>
+                    <td colspan="4">No se detectaron vulnerabilidades en este escaneo.</td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>Recomendaciones Prioritarias</h2>
+        <ol class="recommendations">
+            {% for recomendacion in resumen.recomendaciones %}
+            <li>{{ recomendacion }}</li>
+            {% endfor %}
+        </ol>
+    </div>
+
+    <p class="footer">Documento generado automáticamente por VulnShield. Esta salida resume el riesgo del enlace
+        analizado y acciones sugeridas.</p>
+</body>
+
+</html>

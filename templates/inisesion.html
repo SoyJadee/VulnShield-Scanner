@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Dual - VulnShield</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet">
     <style>
         :root {
             --c1: #022f40;
@@ -17,10 +20,21 @@
             --white: #ffffff;
         }
 
-        #form-toggle:checked ~ .form-container { transform: translateX(-50%); }
-        #form-toggle:checked ~ .switch-wrapper .switch-label .switch-ball { transform: translateX(100%); }
-        #form-toggle:checked ~ .switch-wrapper .switch-label .text-login { opacity: 0.5; }
-        #form-toggle:checked ~ .switch-wrapper .switch-label .text-register { opacity: 1; }
+        #form-toggle:checked~.form-container {
+            transform: translateX(-50%);
+        }
+
+        #form-toggle:checked~.switch-wrapper .switch-label .switch-ball {
+            transform: translateX(100%);
+        }
+
+        #form-toggle:checked~.switch-wrapper .switch-label .text-login {
+            opacity: 0.5;
+        }
+
+        #form-toggle:checked~.switch-wrapper .switch-label .text-register {
+            opacity: 1;
+        }
 
         body {
             font-family: 'Space Grotesk', sans-serif;
@@ -120,7 +134,7 @@
         .input-error {
             border-color: var(--c5) !important;
         }
-        
+
         .form-container {
             width: 200%;
             transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -133,6 +147,7 @@
         }
     </style>
 </head>
+
 <body class="min-h-screen flex items-center justify-center p-4 font-sans">
 
     <div class="panel w-full max-w-md rounded-2xl overflow-hidden">
@@ -140,7 +155,9 @@
         <div class="flex items-center justify-center gap-4 pt-8 pb-4">
             <a href="/" class="flex items-center gap-4 text-white hover:text-gray-300 transition-colors">
                 <div class="text-primary flex items-center justify-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                        aria-hidden="true">
                         <path d="M20 13c0 5-3.5 7.5-8 9c-4.5-1.5-8-4-8-9V6l8-3l8 3z"></path>
                         <path d="m9 12l2 2l4-4"></path>
                     </svg>
@@ -149,12 +166,17 @@
             </a>
         </div>
         <input type="checkbox" id="form-toggle" class="hidden">
-        
+
         <div class="switch-wrapper flex flex-col items-center pt-8 pb-4">
             <div class="switch-label flex items-center w-72 h-14 rounded-full relative p-1">
-                <div class="switch-ball absolute w-[140px] h-12 rounded-full transition-transform duration-300 ease-in-out"></div>
-                <button id="btn-entrar" type="button" class="text-login z-10 w-1/2 text-center font-semibold transition-opacity duration-300">Inicio de Sesión</button>
-                <button id="btn-registro" type="button" class="text-register z-10 w-1/2 text-center font-semibold opacity-50 transition-opacity duration-300">Registro</button>
+                <div
+                    class="switch-ball absolute w-[140px] h-12 rounded-full transition-transform duration-300 ease-in-out">
+                </div>
+                <button id="btn-entrar" type="button"
+                    class="text-login z-10 w-1/2 text-center font-semibold transition-opacity duration-300">Inicio de
+                    Sesión</button>
+                <button id="btn-registro" type="button"
+                    class="text-register z-10 w-1/2 text-center font-semibold opacity-50 transition-opacity duration-300">Registro</button>
             </div>
         </div>
 
@@ -164,7 +186,9 @@
                 <form id="login-form" class="space-y-4">
                     <div>
                         <label class="field-label block text-sm mb-1">Correo</label>
-                        <input id="login-correo" type="email" maxlength="50" class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="correo@ejemplo.com">
+                        <input id="login-correo" type="email" maxlength="100"
+                            class="field-input w-full px-4 py-3 rounded-lg transition-colors"
+                            placeholder="correo@ejemplo.com">
                         <p id="login-correo-error" class="error-text mt-2 text-[10px] hidden">
                             Ingrese un formato de correo válido.
                         </p>
@@ -172,11 +196,17 @@
                     <div>
                         <label class="field-label block text-sm mb-1">Contraseña</label>
                         <div class="relative">
-                            <input id="login-password" type="password" maxlength="20" class="field-input w-full px-4 py-3 pr-12 rounded-lg transition-colors" placeholder="••••••••">
-                            <button id="toggle-login-password" type="button" class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <input id="login-password" type="password" maxlength="20"
+                                class="field-input w-full px-4 py-3 pr-12 rounded-lg transition-colors"
+                                placeholder="••••••••">
+                            <button id="toggle-login-password" type="button"
+                                class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </button>
                         </div>
@@ -185,13 +215,15 @@
                         </p>
                         <p id="login-error" class="error-text mt-2 text-[10px] hidden"></p>
                         <div class="mt-2 flex justify-end">
-                            <button id="forgot-password-btn" type="button" class="text-xs font-semibold text-[#38aecc] hover:text-white transition-colors">
+                            <button id="forgot-password-btn" type="button"
+                                class="text-xs font-semibold text-[#38aecc] hover:text-white transition-colors">
                                 Olvidé mi contraseña
                             </button>
                         </div>
                         <p id="forgot-password-help" class="error-text mt-2 text-[10px] hidden"></p>
                     </div>
-                    <button type="submit" class="action-btn w-full py-3 rounded-lg transition-all">Iniciar Sesión</button>
+                    <button type="submit" class="action-btn w-full py-3 rounded-lg transition-all">Iniciar
+                        Sesión</button>
                 </form>
             </div>
 
@@ -200,24 +232,29 @@
                 <form id="register-form" class="space-y-4">
                     <div>
                         <label class="field-label block text-sm mb-1">Nombre</label>
-                        <input id="reg-usuario" type="text" maxlength="20" class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="Mari">
+                        <input id="reg-usuario" type="text" maxlength="20"
+                            class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="Mari">
                         <p id="reg-usuario-error" class="error-text mt-2 text-[10px] hidden">
-                            El usuario debe tener entre 6 y 20 caracteres y solo contener letras, números, guiones bajos (_) y puntos (.).
+                            El usuario debe tener entre 6 y 20 caracteres y solo contener letras, números, guiones bajos
+                            (_) y puntos (.).
                         </p>
                     </div>
-                    
+
                     <div>
                         <label class="field-label block text-sm mb-1">Correo</label>
-                        <input id="reg-email" type="email" maxlength="50" class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="correo@ejemplo.com">
+                        <input id="reg-email" type="email" maxlength="100"
+                            class="field-input w-full px-4 py-3 rounded-lg transition-colors"
+                            placeholder="correo@ejemplo.com">
                         <p id="reg-email-error" class="error-text mt-2 text-[10px] hidden">
                             Ingrese un formato de correo válido.
                         </p>
                     </div>
-                    
+
                     <div class="relative">
                         <label class="field-label block text-sm mb-1">Contraseña</label>
-                        
-                        <div id="password-popup" class="help-popup absolute bottom-full left-0 mb-2 w-full p-3 rounded-lg text-xs opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 z-50">
+
+                        <div id="password-popup"
+                            class="help-popup absolute bottom-full left-0 mb-2 w-full p-3 rounded-lg text-xs opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 z-50">
                             <p class="font-bold mb-1">Requisitos (Máx. 20 carac.):</p>
                             <ul class="space-y-1">
                                 <li id="req-length" class="req-invalid">• Entre 8 y 20 caracteres</li>
@@ -227,11 +264,17 @@
                         </div>
 
                         <div class="relative">
-                            <input id="reg-password" type="password" maxlength="20" class="field-input w-full px-4 py-3 pr-12 rounded-lg transition-colors" placeholder="••••••••">
-                            <button id="toggle-register-password" type="button" class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <input id="reg-password" type="password" maxlength="20"
+                                class="field-input w-full px-4 py-3 pr-12 rounded-lg transition-colors"
+                                placeholder="••••••••">
+                            <button id="toggle-register-password" type="button"
+                                class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                                    stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round"
+                                        d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </button>
                         </div>
@@ -259,7 +302,7 @@
         const btnEntrar = document.getElementById('btn-entrar');
         const btnRegistro = document.getElementById('btn-registro');
         const loginForm = document.getElementById('login-form');
-        
+
         // Definir las variables del login
         const loginCorreo = document.getElementById('login-correo');
         const loginPassword = document.getElementById('login-password');
@@ -268,7 +311,7 @@
         const loginError = document.getElementById('login-error');
         const forgotPasswordBtn = document.getElementById('forgot-password-btn');
         const forgotPasswordHelp = document.getElementById('forgot-password-help');
-        
+
         const toggleLoginPassword = document.getElementById('toggle-login-password');
         const regUsuario = document.getElementById('reg-usuario');
         const regPassword = document.getElementById('reg-password');
@@ -291,7 +334,13 @@
         }
 
         function validateEmail(email) {
-            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            return re.test(email);
+        }
+
+        function validateEmailEnProgreso(email) {
+            // Permite escritura parcial mientras el usuario completa el correo (ej: usuario@gmail.c -> usuario@gmail.com)
+            const re = /^[a-zA-Z0-9._%+-]*(@[a-zA-Z0-9.-]*)?(\.[a-zA-Z]*)?$/;
             return re.test(email);
         }
 
@@ -313,7 +362,7 @@
         }
 
         function bindPasswordToggle(buttonElement, inputElement) {
-            buttonElement.addEventListener('click', function() {
+            buttonElement.addEventListener('click', function () {
                 const isHidden = inputElement.type === 'password';
                 inputElement.type = isHidden ? 'text' : 'password';
                 buttonElement.classList.toggle('is-active', isHidden);
@@ -322,29 +371,36 @@
 
         btnEntrar.addEventListener('click', () => formToggle.checked = false);
         btnRegistro.addEventListener('click', () => formToggle.checked = true);
-        
+
         bindPasswordToggle(toggleLoginPassword, loginPassword);
         bindPasswordToggle(toggleRegisterPassword, regPassword);
 
         if (forgotPasswordBtn && forgotPasswordHelp) {
             forgotPasswordBtn.addEventListener('click', () => {
-                forgotPasswordHelp.textContent = 'Recuperación de contraseña no disponible aún. Contacta al administrador o crea una cuenta nueva.';
-                forgotPasswordHelp.classList.remove('hidden');
+                window.location.href = '/recuperar-contrasena';
             });
         }
 
-        regEmail.addEventListener('input', function() {
-            setErrorStyle(this, regEmailError, this.value.length > 0 && !validateEmail(this.value));
+        regEmail.addEventListener('input', function () {
+            const valor = this.value.trim();
+            if (!valor) {
+                setErrorStyle(this, regEmailError, false);
+                return;
+            }
+
+            // Solo marca error inmediato si hay caracteres claramente invalidos.
+            // La validacion estricta (TLD >= 2) se mantiene al enviar el formulario.
+            setErrorStyle(this, regEmailError, !validateEmailEnProgreso(valor));
         });
 
-        regUsuario.addEventListener('input', function() {
+        regUsuario.addEventListener('input', function () {
             setErrorStyle(this, regUsuarioError, this.value.length > 0 && !validateUsuario(this.value));
         });
 
         regPassword.addEventListener('focus', () => passwordPopup.classList.add('show-popup'));
         regPassword.addEventListener('blur', () => passwordPopup.classList.remove('show-popup'));
 
-        regPassword.addEventListener('input', function() {
+        regPassword.addEventListener('input', function () {
             const v = validateRegisterPassword(this.value);
             reqLength.classList.toggle('req-valid', v.hasLength);
             reqLength.classList.toggle('req-invalid', !v.hasLength);
@@ -355,12 +411,12 @@
             setErrorStyle(this, regPasswordError, this.value.length > 0 && !v.isValid);
         });
 
-        registerForm.addEventListener('submit', function(e) {
+        registerForm.addEventListener('submit', function (e) {
             e.preventDefault();
             const isEmailValid = validateEmail(regEmail.value);
             const isPassValid = validateRegisterPassword(regPassword.value).isValid;
             const isUserValid = validateUsuario(regUsuario.value);
-            
+
             if (!isEmailValid || !isPassValid || !isUserValid) {
                 setErrorStyle(regEmail, regEmailError, !isEmailValid);
                 setErrorStyle(regPassword, regPasswordError, !isPassValid);
@@ -383,35 +439,35 @@
                     contrasena: regPassword.value
                 })
             })
-            .then(async (response) => {
-                const data = await response.json();
-                if (!response.ok || data.error) {
-                    throw new Error(data.error || 'No se pudo registrar');
-                }
-                registerFeedback.textContent = data.mensaje || 'Registro exitoso. Ahora puedes iniciar sesión.';
-                if (data.warning) {
-                    registerFeedback.textContent += ' (' + data.warning + ')';
-                }
-                registerFeedback.classList.remove('hidden');
-                registerForm.reset();
-                setErrorStyle(regUsuario, regUsuarioError, false);
-                setErrorStyle(regEmail, regEmailError, false);
-                setErrorStyle(regPassword, regPasswordError, false);
-                reqLength.classList.remove('req-valid'); reqLength.classList.add('req-invalid');
-                reqSpecial.classList.remove('req-valid'); reqSpecial.classList.add('req-invalid');
-                reqCase.classList.remove('req-valid'); reqCase.classList.add('req-invalid');
-                formToggle.checked = false;
-            })
-            .catch((error) => {
-                registerFeedback.textContent = error.message;
-                registerFeedback.classList.remove('hidden');
-            });
+                .then(async (response) => {
+                    const data = await response.json();
+                    if (!response.ok || data.error) {
+                        throw new Error(data.error || 'No se pudo registrar');
+                    }
+                    registerFeedback.textContent = data.mensaje || 'Registro exitoso. Ahora puedes iniciar sesión.';
+                    if (data.warning) {
+                        registerFeedback.textContent += ' (' + data.warning + ')';
+                    }
+                    registerFeedback.classList.remove('hidden');
+                    registerForm.reset();
+                    setErrorStyle(regUsuario, regUsuarioError, false);
+                    setErrorStyle(regEmail, regEmailError, false);
+                    setErrorStyle(regPassword, regPasswordError, false);
+                    reqLength.classList.remove('req-valid'); reqLength.classList.add('req-invalid');
+                    reqSpecial.classList.remove('req-valid'); reqSpecial.classList.add('req-invalid');
+                    reqCase.classList.remove('req-valid'); reqCase.classList.add('req-invalid');
+                    formToggle.checked = false;
+                })
+                .catch((error) => {
+                    registerFeedback.textContent = error.message;
+                    registerFeedback.classList.remove('hidden');
+                });
         });
 
         // Login form handler corregido
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
+
             // Ocultar todos los errores previos
             loginError.classList.add('hidden');
             loginPasswordError.classList.add('hidden');
@@ -444,9 +500,9 @@
                 const resp = await fetch('/api/auth/login', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ 
-                        correo: correo, 
-                        contrasena: password 
+                    body: JSON.stringify({
+                        correo: correo,
+                        contrasena: password
                     })
                 });
 
@@ -471,4 +527,5 @@
         });
     </script>
 </body>
+
 </html>

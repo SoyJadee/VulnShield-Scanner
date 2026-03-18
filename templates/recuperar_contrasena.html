@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recuperar Contraseña - VulnShield</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --c1: #022f40;
+            --c2: #38aecc;
+            --c3: #0090c1;
+            --c4: #183446;
+            --c5: #046e8f;
+            --white: #ffffff;
+        }
+
+        body {
+            font-family: 'Space Grotesk', sans-serif;
+            background: var(--c1);
+            color: var(--white);
+        }
+
+        .panel {
+            background: var(--c4);
+            border: 1px solid var(--c3);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+        }
+
+        .field-input {
+            background: var(--white);
+            border: 1px solid var(--c3);
+            color: var(--c1);
+        }
+
+        .field-input:focus {
+            border-color: var(--c5);
+            outline: none;
+        }
+
+        .action-btn {
+            background: var(--c3);
+            color: var(--white);
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--c2);
+            color: var(--c1);
+        }
+
+        .input-error {
+            border-color: #ef4444 !important;
+        }
+
+        .toggle-btn {
+            color: var(--c5);
+        }
+
+        .toggle-btn:hover,
+        .toggle-btn.is-active {
+            color: var(--c1);
+        }
+    </style>
+</head>
+
+<body class="min-h-screen flex items-center justify-center p-4">
+    <div class="panel w-full max-w-xl rounded-2xl p-8">
+        <h1 class="text-2xl font-bold mb-2">Recuperar contraseña</h1>
+        <p class="text-sm text-cyan-100 mb-6">Solicita un código para restablecer la contraseña de una cuenta de usuario
+            (no admin).</p>
+
+        <div id="globalMessage" class="hidden rounded-lg px-4 py-3 text-sm mb-5"></div>
+
+        <form id="sendCodeForm" class="space-y-4">
+            <div>
+                <label for="correo" class="block text-sm mb-1 text-cyan-100">Correo</label>
+                <input id="correo" type="email" minlength="6" maxlength="100" placeholder="correo@ejemplo.com"
+                    class="field-input w-full rounded-lg px-4 py-3">
+            </div>
+            <button id="sendCodeButton" type="submit" class="action-btn w-full rounded-lg py-3">Enviar código</button>
+        </form>
+        <p id="resendHint" class="hidden mt-3 text-xs text-cyan-100"></p>
+
+        <div id="codeSentBox" class="hidden mt-6 rounded-lg border border-cyan-400/40 bg-cyan-500/10 p-4">
+            <p id="codeSentText" class="text-sm text-cyan-100"></p>
+        </div>
+
+        <form id="resetForm" class="hidden mt-6 space-y-4">
+            <h2 class="text-lg font-bold">Restablecer contraseña</h2>
+            <div>
+                <label for="codigo" class="block text-sm mb-1 text-cyan-100">Código recibido</label>
+                <input id="codigo" type="text" inputmode="numeric" maxlength="6" placeholder="123456"
+                    class="field-input w-full rounded-lg px-4 py-3">
+            </div>
+            <div>
+                <label for="nuevaContrasena" class="block text-sm mb-1 text-cyan-100">Nueva contraseña</label>
+                <div class="relative">
+                    <input id="nuevaContrasena" type="password" minlength="8" maxlength="20" placeholder="********"
+                        class="field-input w-full rounded-lg px-4 py-3 pr-12">
+                    <button id="toggleNuevaContrasena" type="button" aria-label="Mostrar u ocultar contraseña"
+                        class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+                <p class="mt-2 text-xs text-cyan-100/90">Debe incluir mínimo una mayúscula y mínimo un carácter
+                    especial.</p>
+            </div>
+            <div>
+                <label for="confirmarContrasena" class="block text-sm mb-1 text-cyan-100">Confirmar contraseña</label>
+                <div class="relative">
+                    <input id="confirmarContrasena" type="password" minlength="8" maxlength="20" placeholder="********"
+                        class="field-input w-full rounded-lg px-4 py-3 pr-12">
+                    <button id="toggleConfirmarContrasena" type="button" aria-label="Mostrar u ocultar contraseña"
+                        class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <button type="submit" class="action-btn w-full rounded-lg py-3">Cambiar contraseña</button>
+        </form>
+
+        <div class="mt-6 text-center">
+            <a href="/inisesion" class="text-sm text-cyan-200 hover:text-white transition-colors">Volver a inicio de
+                sesion</a>
+        </div>
+    </div>
+
+    <script>
+        const sendCodeForm = document.getElementById('sendCodeForm');
+        const resetForm = document.getElementById('resetForm');
+        const globalMessage = document.getElementById('globalMessage');
+        const codeSentBox = document.getElementById('codeSentBox');
+        const codeSentText = document.getElementById('codeSentText');
+        const sendCodeButton = document.getElementById('sendCodeButton');
+        const resendHint = document.getElementById('resendHint');
+
+        const correoInput = document.getElementById('correo');
+        const codigoInput = document.getElementById('codigo');
+        const nuevaContrasenaInput = document.getElementById('nuevaContrasena');
+        const confirmarContrasenaInput = document.getElementById('confirmarContrasena');
+        const toggleNuevaContrasena = document.getElementById('toggleNuevaContrasena');
+        const toggleConfirmarContrasena = document.getElementById('toggleConfirmarContrasena');
+        let cooldownTimer = null;
+
+        function showMessage(text, isError = false) {
+            globalMessage.textContent = text;
+            globalMessage.classList.remove('hidden', 'bg-green-500/20', 'text-green-200', 'bg-red-500/20', 'text-red-200');
+            globalMessage.classList.add(isError ? 'bg-red-500/20' : 'bg-green-500/20');
+            globalMessage.classList.add(isError ? 'text-red-200' : 'text-green-200');
+        }
+
+        function clearInputErrors() {
+            [correoInput, codigoInput, nuevaContrasenaInput, confirmarContrasenaInput]
+                .forEach((el) => el.classList.remove('input-error'));
+        }
+
+        function bindPasswordToggle(buttonElement, inputElement) {
+            buttonElement.addEventListener('click', function () {
+                const isHidden = inputElement.type === 'password';
+                inputElement.type = isHidden ? 'text' : 'password';
+                buttonElement.classList.toggle('is-active', isHidden);
+                buttonElement.setAttribute('aria-label', isHidden ? 'Ocultar contraseña' : 'Mostrar contraseña');
+            });
+        }
+
+        bindPasswordToggle(toggleNuevaContrasena, nuevaContrasenaInput);
+        bindPasswordToggle(toggleConfirmarContrasena, confirmarContrasenaInput);
+
+        function startCooldown(seconds) {
+            let remaining = Number(seconds || 0);
+            if (!Number.isFinite(remaining) || remaining <= 0) {
+                return;
+            }
+
+            if (cooldownTimer) {
+                clearInterval(cooldownTimer);
+                cooldownTimer = null;
+            }
+
+            sendCodeButton.disabled = true;
+            sendCodeButton.classList.add('opacity-70', 'cursor-not-allowed');
+            resendHint.classList.remove('hidden');
+
+            const render = () => {
+                if (remaining > 0) {
+                    resendHint.textContent = `¿Quieres otro código? Podrás solicitarlo en ${remaining}s.`;
+                    remaining -= 1;
+                    return;
+                }
+
+                clearInterval(cooldownTimer);
+                cooldownTimer = null;
+                sendCodeButton.disabled = false;
+                sendCodeButton.classList.remove('opacity-70', 'cursor-not-allowed');
+                resendHint.textContent = '¿Quieres otro código? Ya puedes solicitarlo.';
+            };
+
+            render();
+            cooldownTimer = setInterval(render, 1000);
+        }
+
+        async function cargarEstadoRecuperacion() {
+            try {
+                const resp = await fetch('/api/auth/recuperacion-estado', {
+                    method: 'GET',
+                    headers: { 'Content-Type': 'application/json' },
+                });
+
+                if (!resp.ok) return;
+                const data = await resp.json();
+                if (!data || !data.ok) return;
+
+                if (data.codigo_pendiente) {
+                    const correo = data.correo_censurado || 'tu correo registrado';
+                    codeSentText.textContent = `Se ha enviado un código al correo ${correo}`;
+                    codeSentBox.classList.remove('hidden');
+                    resetForm.classList.remove('hidden');
+                }
+
+                if (data.cooldown_restante && data.cooldown_restante > 0) {
+                    startCooldown(data.cooldown_restante);
+                } else if (data.codigo_pendiente) {
+                    resendHint.classList.remove('hidden');
+                    resendHint.textContent = '¿Quieres otro código? Ya puedes solicitarlo.';
+                }
+            } catch (_) {
+                // Si falla esta consulta, el flujo principal sigue funcionando.
+            }
+        }
+
+        sendCodeForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearInputErrors();
+            globalMessage.classList.add('hidden');
+
+            const correo = correoInput.value.trim().toLowerCase();
+            if (!correo) {
+                correoInput.classList.add('input-error');
+                showMessage('Debes ingresar un correo', true);
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/auth/recuperar-contrasena', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ correo }),
+                });
+                const data = await resp.json();
+
+                if (!resp.ok || data.error) {
+                    correoInput.classList.add('input-error');
+                    showMessage(data.error || 'No se pudo enviar el código', true);
+                    if (resp.status === 429 && data.retry_after) {
+                        startCooldown(data.retry_after);
+                    }
+                    return;
+                }
+
+                const mensaje = data.mensaje || `Se ha enviado un código al correo ${data.correo_censurado}`;
+                codeSentText.textContent = mensaje;
+                codeSentBox.classList.remove('hidden');
+                resetForm.classList.remove('hidden');
+                showMessage('Código enviado. Ahora puedes cambiar la contraseña.');
+                startCooldown(data.cooldown_segundos || 60);
+
+                if (data.warning) {
+                    showMessage(`Código generado, pero hubo un problema enviando correo: ${data.warning}`, true);
+                }
+            } catch (_) {
+                showMessage('Error de red al solicitar el código', true);
+            }
+        });
+
+        function validarFortaleza(contrasena) {
+            const hasLength = contrasena.length >= 8 && contrasena.length <= 20;
+            const hasUpper = /[A-Z]/.test(contrasena);
+            const hasLower = /[a-z]/.test(contrasena);
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(contrasena);
+            return hasLength && hasUpper && hasLower && hasSpecial;
+        }
+
+        resetForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            clearInputErrors();
+            globalMessage.classList.add('hidden');
+
+            const correo = correoInput.value.trim().toLowerCase();
+            const codigo = codigoInput.value.trim();
+            const nuevaContrasena = nuevaContrasenaInput.value;
+            const confirmarContrasena = confirmarContrasenaInput.value;
+
+            if (!codigo) {
+                codigoInput.classList.add('input-error');
+                showMessage('Debes ingresar el código recibido', true);
+                return;
+            }
+
+            if (!validarFortaleza(nuevaContrasena)) {
+                nuevaContrasenaInput.classList.add('input-error');
+                confirmarContrasenaInput.classList.add('input-error');
+                showMessage('La nueva contraseña debe tener entre 8 y 20 caracteres, mínimo una mayúscula, mínimo una minúscula y mínimo un carácter especial', true);
+                return;
+            }
+
+            if (nuevaContrasena !== confirmarContrasena) {
+                nuevaContrasenaInput.classList.add('input-error');
+                confirmarContrasenaInput.classList.add('input-error');
+                showMessage('Las contraseñas no coinciden', true);
+                return;
+            }
+
+            try {
+                const resp = await fetch('/api/auth/restablecer-contrasena', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        correo,
+                        codigo,
+                        contrasena_nueva: nuevaContrasena,
+                    }),
+                });
+                const data = await resp.json();
+
+                if (!resp.ok || data.error) {
+                    showMessage(data.error || 'No se pudo cambiar la contraseña', true);
+                    return;
+                }
+
+                showMessage(data.mensaje || 'Contraseña restablecida correctamente');
+                resetForm.reset();
+                setTimeout(() => {
+                    window.location.href = '/inisesion';
+                }, 1400);
+            } catch (_) {
+                showMessage('Error de red al restablecer la contraseña', true);
+            }
+        });
+
+        cargarEstadoRecuperacion();
+    </script>
+</body>
+
+</html>

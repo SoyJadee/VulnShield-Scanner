@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html class="dark" lang="es">
+
 <head>
     <meta charset="utf-8" />
     <meta content="width=device-width, initial-scale=1.0" name="viewport" />
     <title>VulnShield - Configuración</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap"
+        rel="stylesheet" />
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -37,31 +40,39 @@
         body {
             font-family: 'Space Grotesk', sans-serif;
         }
+
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+
         .error-message {
             color: #ef4444;
             font-size: 0.75rem;
             margin-top: 0.25rem;
         }
+
         .success-message {
             color: #10b981;
             font-size: 0.75rem;
             margin-top: 0.25rem;
         }
+
         .input-error {
             border-color: #ef4444 !important;
         }
     </style>
 </head>
+
 <body class="bg-background-dark text-slate-100 min-h-screen">
     <div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
         <div class="layout-container flex h-full grow flex-col">
-            <header class="flex items-center justify-between border-b border-accent-dark/30 px-6 py-4 lg:px-20 bg-container-dark/50 backdrop-blur-md sticky top-0 z-50">
+            <header
+                class="flex items-center justify-between border-b border-accent-dark/30 px-6 py-4 lg:px-20 bg-container-dark/50 backdrop-blur-md sticky top-0 z-50">
                 <div class="flex items-center gap-4">
                     <div class="text-primary flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"
+                            aria-hidden="true">
                             <path d="M20 13c0 5-3.5 7.5-8 9c-4.5-1.5-8-4-8-9V6l8-3l8 3z"></path>
                             <path d="m9 12l2 2l4-4"></path>
                         </svg>
@@ -82,9 +93,11 @@
                 </div>
             </header>
             <main class="flex flex-1 flex-col lg:flex-row">
-                <aside class="w-full lg:w-64 border-r border-accent-dark/20 p-6 flex flex-col gap-8 bg-container-dark/20">
+                <aside
+                    class="w-full lg:w-64 border-r border-accent-dark/20 p-6 flex flex-col gap-8 bg-container-dark/20">
                     <div class="flex items-center gap-3 px-2">
-                        <div class="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-background-dark">
+                        <div
+                            class="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-background-dark">
                             <span class="material-symbols-outlined font-bold">radar</span>
                         </div>
                         <div class="flex flex-col">
@@ -93,15 +106,18 @@
                         </div>
                     </div>
                     <nav class="flex flex-col gap-2">
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="/dashboard">
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all"
+                            href="/dashboard">
                             <span class="material-symbols-outlined">dashboard</span>
                             <span class="text-sm">Dashboard</span>
                         </a>
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="/escaneos">
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all"
+                            href="/escaneos">
                             <span class="material-symbols-outlined">document_scanner</span>
                             <span class="text-sm">Escaneos</span>
                         </a>
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-background-dark font-bold transition-all" href="/configuracion">
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-background-dark font-bold transition-all"
+                            href="/configuracion">
                             <span class="material-symbols-outlined">settings</span>
                             <span class="text-sm">Ajustes</span>
                         </a>
@@ -117,13 +133,15 @@
                 <section class="flex-1 p-6 lg:p-10 flex flex-col gap-8">
                     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
-                            <h2 class="text-white text-3xl font-black tracking-tight mb-1">Configuración de la Cuenta</h2>
-                            <p class="text-slate-400 text-sm">Administra tus datos de perfil, seguridad y preferencias de cuenta.</p>
+                            <h2 class="text-white text-3xl font-black tracking-tight mb-1">Configuración de la Cuenta
+                            </h2>
+                            <p class="text-slate-400 text-sm">Administra tus datos de perfil, seguridad y preferencias
+                                de cuenta.</p>
                         </div>
                     </div>
-                    
+
                     <div id="mensaje-global" class="hidden px-4 py-3 rounded-lg text-sm"></div>
-                    
+
                     <div class="grid grid-cols-1 gap-8 max-w-2xl mx-auto w-full">
                         <!-- Cambiar Nombre de Usuario -->
                         <div class="rounded-xl bg-surface-dark border border-accent-dark/30 shadow-xl p-6">
@@ -135,17 +153,18 @@
                                 </div>
                             </div>
                             <div class="flex flex-col md:flex-row gap-3">
-                                <input type="text" id="nuevo-usuario" placeholder="Nuevo nombre de usuario" 
-                                       class="flex-1 bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
-                                <button onclick="actualizarUsuario()" 
-                                        class="bg-primary hover:brightness-110 text-white font-bold py-2 px-6 rounded-lg transition-all whitespace-nowrap">
+                                <input type="text" id="nuevo-usuario" placeholder="Nuevo nombre de usuario"
+                                    minlength="6" maxlength="20"
+                                    class="flex-1 bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                                <button onclick="actualizarUsuario()"
+                                    class="bg-primary hover:brightness-110 text-white font-bold py-2 px-6 rounded-lg transition-all whitespace-nowrap">
                                     Actualizar
                                 </button>
                             </div>
                             <div id="error-usuario" class="error-message hidden"></div>
                             <div id="success-usuario" class="success-message hidden"></div>
                         </div>
-                        
+
                         <!-- Cambiar Correo de Usuario -->
                         <div class="rounded-xl bg-surface-dark border border-accent-dark/30 shadow-xl p-6">
                             <div class="flex items-center gap-6 mb-4">
@@ -156,17 +175,18 @@
                                 </div>
                             </div>
                             <div class="flex flex-col md:flex-row gap-3">
-                                <input type="email" id="nuevo-email" placeholder="Nuevo correo electrónico" 
-                                       class="flex-1 bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
-                                <button onclick="actualizarEmail()" 
-                                        class="bg-primary hover:brightness-110 text-white font-bold py-2 px-6 rounded-lg transition-all whitespace-nowrap">
+                                <input type="email" id="nuevo-email" placeholder="Nuevo correo electrónico"
+                                    minlength="6" maxlength="100"
+                                    class="flex-1 bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                                <button onclick="actualizarEmail()"
+                                    class="bg-primary hover:brightness-110 text-white font-bold py-2 px-6 rounded-lg transition-all whitespace-nowrap">
                                     Actualizar
                                 </button>
                             </div>
                             <div id="error-email" class="error-message hidden"></div>
                             <div id="success-email" class="success-message hidden"></div>
                         </div>
-                        
+
                         <!-- Cambiar Contraseña -->
                         <div class="rounded-xl bg-surface-dark border border-accent-dark/30 shadow-xl p-6">
                             <div class="flex items-center gap-6 mb-4">
@@ -177,35 +197,40 @@
                                 </div>
                             </div>
                             <div class="space-y-3">
-                                <input type="password" id="contrasena-actual" placeholder="Contraseña actual" 
-                                       class="w-full bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
-                                <input type="password" id="nueva-contrasena" placeholder="Nueva contraseña" 
-                                       class="w-full bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
-                                <input type="password" id="confirmar-contrasena" placeholder="Confirmar nueva contraseña" 
-                                       class="w-full bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
-                                <button onclick="actualizarContrasena()" 
-                                        class="w-full bg-primary hover:brightness-110 text-white font-bold py-2 px-6 rounded-lg transition-all">
+                                <input type="password" id="contrasena-actual" placeholder="Contraseña actual"
+                                    minlength="8" maxlength="20"
+                                    class="w-full bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                                <input type="password" id="nueva-contrasena" placeholder="Nueva contraseña"
+                                    minlength="8" maxlength="20"
+                                    class="w-full bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                                <input type="password" id="confirmar-contrasena"
+                                    placeholder="Confirmar nueva contraseña" minlength="8" maxlength="20"
+                                    class="w-full bg-background-dark border border-accent-dark/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-primary">
+                                <button onclick="actualizarContrasena()"
+                                    class="w-full bg-primary hover:brightness-110 text-white font-bold py-2 px-6 rounded-lg transition-all">
                                     Cambiar Contraseña
                                 </button>
                             </div>
                             <div id="error-contrasena" class="error-message hidden"></div>
                             <div id="success-contrasena" class="success-message hidden"></div>
                         </div>
-                        
+
                         <!-- Zona de Peligro -->
                         <div class="rounded-xl bg-red-500/10 border border-red-500/30 shadow-xl p-6">
                             <div class="flex items-center gap-6 mb-4">
                                 <span class="material-symbols-outlined text-red-400 text-3xl">delete_forever</span>
                                 <div class="flex flex-col">
                                     <span class="text-lg font-bold text-white">Eliminar Cuenta</span>
-                                    <span class="text-sm text-slate-400">Una vez que elimines tu cuenta, no hay vuelta atrás. Todos tus datos serán eliminados permanentemente.</span>
+                                    <span class="text-sm text-slate-400">Una vez que elimines tu cuenta, no hay vuelta
+                                        atrás. Todos tus datos serán eliminados permanentemente.</span>
                                 </div>
                             </div>
                             <div class="flex flex-col md:flex-row gap-3">
-                                <input type="password" id="contrasena-eliminar" placeholder="Ingresa tu contraseña para confirmar" 
-                                       class="flex-1 bg-background-dark border border-red-500/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500">
-                                <button onclick="eliminarCuenta()" 
-                                        class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-all whitespace-nowrap">
+                                <input type="password" id="contrasena-eliminar"
+                                    placeholder="Ingresa tu contraseña para confirmar" minlength="8" maxlength="20"
+                                    class="flex-1 bg-background-dark border border-red-500/30 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500">
+                                <button onclick="eliminarCuenta()"
+                                    class="bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-6 rounded-lg transition-all whitespace-nowrap">
                                     Eliminar Cuenta
                                 </button>
                             </div>
@@ -216,14 +241,14 @@
             </main>
         </div>
     </div>
-    
+
     <script>
         // Cargar datos del usuario al iniciar
         async function cargarDatosUsuario() {
             try {
                 const response = await fetch('/api/usuario/actual');
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     document.getElementById('usuario-actual').textContent = `Usuario actual: ${data.usuario}`;
                     document.getElementById('email-actual').textContent = `Correo actual: ${data.email}`;
@@ -234,54 +259,54 @@
                 console.error('Error cargando datos del usuario:', error);
             }
         }
-        
+
         // Mostrar mensaje global
         function mostrarMensajeGlobal(mensaje, esError = false) {
             const msgDiv = document.getElementById('mensaje-global');
             msgDiv.textContent = mensaje;
             msgDiv.classList.remove('hidden', 'bg-green-500/20', 'text-green-300', 'bg-red-500/20', 'text-red-300');
-            
+
             if (esError) {
                 msgDiv.classList.add('bg-red-500/20', 'text-red-300');
             } else {
                 msgDiv.classList.add('bg-green-500/20', 'text-green-300');
             }
-            
+
             setTimeout(() => {
                 msgDiv.classList.add('hidden');
             }, 5000);
         }
-        
+
         // Limpiar estilos de error
         function limpiarErrores() {
             document.querySelectorAll('.error-message').forEach(el => el.classList.add('hidden'));
             document.querySelectorAll('input').forEach(el => el.classList.remove('input-error'));
         }
-        
+
         // Actualizar nombre de usuario
         async function actualizarUsuario() {
             limpiarErrores();
-            
+
             const nuevoUsuario = document.getElementById('nuevo-usuario').value.trim();
             const errorDiv = document.getElementById('error-usuario');
             const successDiv = document.getElementById('success-usuario');
-            
+
             if (!nuevoUsuario) {
                 errorDiv.textContent = 'Por favor ingresa un nombre de usuario';
                 errorDiv.classList.remove('hidden');
                 document.getElementById('nuevo-usuario').classList.add('input-error');
                 return;
             }
-            
+
             try {
                 const response = await fetch('/api/usuario/actualizar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ campo: 'usuario', valor: nuevoUsuario })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     successDiv.textContent = data.mensaje;
                     successDiv.classList.remove('hidden');
@@ -299,22 +324,22 @@
                 document.getElementById('nuevo-usuario').classList.add('input-error');
             }
         }
-        
+
         // Actualizar email
         async function actualizarEmail() {
             limpiarErrores();
-            
+
             const nuevoEmail = document.getElementById('nuevo-email').value.trim();
             const errorDiv = document.getElementById('error-email');
             const successDiv = document.getElementById('success-email');
-            
+
             if (!nuevoEmail) {
                 errorDiv.textContent = 'Por favor ingresa un correo electrónico';
                 errorDiv.classList.remove('hidden');
                 document.getElementById('nuevo-email').classList.add('input-error');
                 return;
             }
-            
+
             const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             if (!emailRegex.test(nuevoEmail)) {
                 errorDiv.textContent = 'Formato de correo inválido';
@@ -322,16 +347,16 @@
                 document.getElementById('nuevo-email').classList.add('input-error');
                 return;
             }
-            
+
             try {
                 const response = await fetch('/api/usuario/actualizar', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ campo: 'email', valor: nuevoEmail })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     successDiv.textContent = data.mensaje;
                     successDiv.classList.remove('hidden');
@@ -349,25 +374,55 @@
                 document.getElementById('nuevo-email').classList.add('input-error');
             }
         }
-        
+
         // Validar fortaleza de contraseña
         function validarFortalezaContrasena(contrasena) {
             const hasLength = contrasena.length >= 8 && contrasena.length <= 20;
+            const hasUppercase = /[A-Z]/.test(contrasena);
+            const hasLowercase = /[a-z]/.test(contrasena);
             const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(contrasena);
-            const hasCase = /[a-z]/.test(contrasena) && /[A-Z]/.test(contrasena);
-            return hasLength && hasSpecial && hasCase;
+
+            if (!hasLength) {
+                return {
+                    esValida: false,
+                    mensaje: 'La contraseña debe tener entre 8 y 20 caracteres'
+                };
+            }
+
+            if (!hasUppercase) {
+                return {
+                    esValida: false,
+                    mensaje: 'La nueva contraseña debe incluir al menos una letra mayúscula'
+                };
+            }
+
+            if (!hasSpecial) {
+                return {
+                    esValida: false,
+                    mensaje: 'La nueva contraseña debe incluir al menos un carácter especial'
+                };
+            }
+
+            if (!hasLowercase) {
+                return {
+                    esValida: false,
+                    mensaje: 'La nueva contraseña debe incluir al menos una letra minúscula'
+                };
+            }
+
+            return { esValida: true, mensaje: '' };
         }
-        
+
         // Actualizar contraseña
         async function actualizarContrasena() {
             limpiarErrores();
-            
+
             const contrasenaActual = document.getElementById('contrasena-actual').value;
             const nuevaContrasena = document.getElementById('nueva-contrasena').value;
             const confirmarContrasena = document.getElementById('confirmar-contrasena').value;
             const errorDiv = document.getElementById('error-contrasena');
             const successDiv = document.getElementById('success-contrasena');
-            
+
             if (!contrasenaActual || !nuevaContrasena || !confirmarContrasena) {
                 errorDiv.textContent = 'Todos los campos son requeridos';
                 errorDiv.classList.remove('hidden');
@@ -376,7 +431,7 @@
                 if (!confirmarContrasena) document.getElementById('confirmar-contrasena').classList.add('input-error');
                 return;
             }
-            
+
             if (nuevaContrasena !== confirmarContrasena) {
                 errorDiv.textContent = 'Las contraseñas no coinciden';
                 errorDiv.classList.remove('hidden');
@@ -384,15 +439,16 @@
                 document.getElementById('confirmar-contrasena').classList.add('input-error');
                 return;
             }
-            
-            if (!validarFortalezaContrasena(nuevaContrasena)) {
-                errorDiv.textContent = 'La contraseña debe tener entre 8 y 20 caracteres, incluir mayúscula, minúscula y un carácter especial';
+
+            const validacionContrasena = validarFortalezaContrasena(nuevaContrasena);
+            if (!validacionContrasena.esValida) {
+                errorDiv.textContent = validacionContrasena.mensaje;
                 errorDiv.classList.remove('hidden');
                 document.getElementById('nueva-contrasena').classList.add('input-error');
                 document.getElementById('confirmar-contrasena').classList.add('input-error');
                 return;
             }
-            
+
             try {
                 const response = await fetch('/api/usuario/cambiar-contrasena', {
                     method: 'POST',
@@ -402,9 +458,9 @@
                         contrasena_nueva: nuevaContrasena
                     })
                 });
-                
+
                 const data = await response.json();
-                
+
                 if (response.ok) {
                     successDiv.textContent = data.mensaje;
                     successDiv.classList.remove('hidden');
@@ -427,33 +483,33 @@
                 errorDiv.classList.remove('hidden');
             }
         }
-        
+
         // Eliminar cuenta
         async function eliminarCuenta() {
             if (!confirm('⚠️ ¿Estás absolutamente seguro de que deseas eliminar tu cuenta?\n\nEsta acción no se puede deshacer. Todos tus escaneos, hallazgos y datos personales serán eliminados permanentemente.')) {
                 return;
             }
-            
+
             const contrasena = document.getElementById('contrasena-eliminar').value;
             const errorDiv = document.getElementById('error-eliminar');
-            
+
             limpiarErrores();
-            
+
             if (!contrasena) {
                 errorDiv.textContent = 'Por favor ingresa tu contraseña para confirmar';
                 errorDiv.classList.remove('hidden');
                 document.getElementById('contrasena-eliminar').classList.add('input-error');
                 return;
             }
-            
+
             // Aquí iría la lógica para eliminar la cuenta
             // Por ahora mostramos un mensaje
             mostrarMensajeGlobal('Funcionalidad de eliminación de cuenta no implementada', true);
         }
-        
+
         // Cargar datos al iniciar
         document.addEventListener('DOMContentLoaded', cargarDatosUsuario);
-        
+
         // Hacer funciones globales
         window.actualizarUsuario = actualizarUsuario;
         window.actualizarEmail = actualizarEmail;
@@ -461,4 +517,5 @@
         window.eliminarCuenta = eliminarCuenta;
     </script>
 </body>
+
 </html>

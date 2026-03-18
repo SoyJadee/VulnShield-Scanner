@@ -55,7 +55,7 @@ def api_listar_administradores():
     """Lista todos los administradores (solo para admin principal)"""
     if not session.get('admin_id'):
         return jsonify({'error': 'No autorizado'}), 401
-    
+
     # Verificar que el usuario actual es admin principal
     solicitante = session.get('admin_usuario', '').strip().lower()
     if solicitante != ADMIN_PRINCIPAL:
@@ -73,7 +73,7 @@ def api_crear_administrador():
     """Crea un nuevo administrador (solo para admin principal)"""
     if not session.get('admin_id'):
         return jsonify({'error': 'No autorizado'}), 401
-    
+
     # Verificar que el usuario actual es admin principal
     solicitante = session.get('admin_usuario', '').strip().lower()
     if solicitante != ADMIN_PRINCIPAL:
@@ -94,8 +94,8 @@ def api_crear_administrador():
         return jsonify({'error': 'Formato de correo inválido'}), 400
 
     # Validar longitud del email
-    if len(email) > 50:
-        return jsonify({'error': 'El correo no puede exceder 50 caracteres'}), 400
+    if len(email) > 100:
+        return jsonify({'error': 'El correo no puede exceder 100 caracteres'}), 400
 
     # Validar usuario (entre 6 y 20 caracteres, solo letras, números, _ y .)
     if len(usuario) < 6 or len(usuario) > 20:
@@ -134,14 +134,15 @@ def api_eliminar_administrador(admin_id):
     """Elimina un administrador (solo para admin principal)"""
     if not session.get('admin_id'):
         return jsonify({'error': 'No autorizado'}), 401
-    
+
     # Verificar que el usuario actual es admin principal
     solicitante = session.get('admin_usuario', '').strip().lower()
     if solicitante != ADMIN_PRINCIPAL:
         return jsonify({'error': 'Solo el administrador principal puede eliminar administradores'}), 403
 
-    resultado = base_datos.eliminar_administrador(admin_id, admin_principal=ADMIN_PRINCIPAL)
-    
+    resultado = base_datos.eliminar_administrador(
+        admin_id, admin_principal=ADMIN_PRINCIPAL)
+
     if not resultado.get('ok'):
         return jsonify({'error': resultado.get('error', 'No se pudo eliminar el administrador')}), 400
 

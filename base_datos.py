@@ -76,7 +76,7 @@ def _asegurar_id_admin(cursor):
     # Si no existe, crear admin con contraseña 'admin123'
     from werkzeug.security import generate_password_hash
     admin_hash = generate_password_hash('admin123')
-    
+
     cursor.execute(
         '''
         INSERT INTO "Usuario" (username, correo, password_hash, "inRol")
@@ -433,7 +433,8 @@ def eliminar_administrador(admin_id, admin_principal='admin'):
         if row[0].strip().lower() == admin_principal.strip().lower():
             return {'ok': False, 'error': 'No se puede eliminar el administrador principal'}
 
-        cursor.execute('DELETE FROM "Usuario" WHERE "idUsuario" = %s', (admin_id,))
+        cursor.execute(
+            'DELETE FROM "Usuario" WHERE "idUsuario" = %s', (admin_id,))
         conexion.commit()
         return {'ok': True}
     except Exception as e:
@@ -482,6 +483,7 @@ def obtener_administrador_por_correo(correo):
 
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
+        correo_normalizado = str(correo or '').strip().lower()
         cursor.execute(
             '''
             SELECT
@@ -491,12 +493,12 @@ def obtener_administrador_por_correo(correo):
                 password_hash AS contrasena_hash,
                 "inRol" AS activo
             FROM "Usuario"
-            WHERE correo = %s
+            WHERE LOWER(TRIM(correo)) = %s
             ''',
-            (correo,),
+            (correo_normalizado,),
         )
         row = cursor.fetchone()
-        print(f"🔍 Resultado BD para correo {correo}: {row}")
+        print(f"Resultado BD para correo {correo_normalizado}: {row}")
         return dict(row) if row else None
     except Exception as e:
         print(f"Error obteniendo administrador por correo: {e}")
@@ -573,6 +575,43 @@ def obtener_metricas_resumen():
         return metricas_base
     except Exception as e:
         print(f"Error obteniendo metricas resumen: {e}")
+        return metricas_base
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def obtener_metricas_resumen_usuario(usuario_id):
+    """Obtiene metricas de escaneos para un usuario especifico."""
+    metricas_base = {
+        'total_escaneos': 0,
+        'escaneos_hoy': 0,
+    }
+
+    conexion = conectar()
+    if not conexion:
+        return metricas_base
+
+    cursor = conexion.cursor()
+    try:
+        cursor.execute(
+            '''
+            SELECT
+                COUNT(*) as total,
+                COUNT(CASE WHEN fecha::date = CURRENT_DATE THEN 1 END) as hoy
+            FROM "Escaneo"
+            WHERE "idUsuario" = %s
+            ''',
+            (usuario_id,),
+        )
+        row = cursor.fetchone()
+        if row:
+            metricas_base['total_escaneos'] = int(row[0] or 0)
+            metricas_base['escaneos_hoy'] = int(row[1] or 0)
+
+        return metricas_base
+    except Exception as e:
+        print(f"Error obteniendo metricas de usuario: {e}")
         return metricas_base
     finally:
         cursor.close()
@@ -786,23 +825,24 @@ def obtener_datos_dashboard():
 def obtener_historial_escaneos(usuario_id):
     """Obtiene el historial completo de escaneos para un usuario (VERSIÓN OPTIMIZADA)"""
     print(f"\n🔍 obtener_historial_escaneos - Usuario ID: {usuario_id}")
-    
+
     conexion = conectar()
     if not conexion:
         print("❌ Error de conexión a BD")
         return []
-    
+
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
         # 1. Verificar usuario
-        cursor.execute('SELECT * FROM "Usuario" WHERE "idUsuario" = %s', (usuario_id,))
+        cursor.execute(
+            'SELECT * FROM "Usuario" WHERE "idUsuario" = %s', (usuario_id,))
         usuario = cursor.fetchone()
         if not usuario:
             print(f"❌ Usuario {usuario_id} no existe")
             return []
-        
+
         print(f"✅ Usuario encontrado: {usuario['username']}")
-        
+
         # 2. Obtener escaneos básicos (sin joins pesados)
         cursor.execute('''
             SELECT 
@@ -817,20 +857,20 @@ def obtener_historial_escaneos(usuario_id):
             WHERE e."idUsuario" = %s
             ORDER BY e.fecha DESC
         ''', (usuario_id,))
-        
+
         escaneos = cursor.fetchall()
         print(f"📊 Escaneos encontrados: {len(escaneos)}")
-        
+
         if not escaneos:
             print("⚠️ No hay escaneos para este usuario")
             return []
-        
+
         # 3. Para cada escaneo, obtener sus hallazgos (consulta separada)
         historial = []
         for escaneo in escaneos:
             try:
                 escaneo_id = escaneo['idEscaneo']
-                
+
                 # Obtener hallazgos para este escaneo
                 cursor.execute('''
                     SELECT 
@@ -841,15 +881,16 @@ def obtener_historial_escaneos(usuario_id):
                     JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
                     WHERE h."idEscaneo" = %s
                 ''', (escaneo_id,))
-                
+
                 hallazgos = cursor.fetchall()
-                
+
                 # Procesar hallazgos
                 tipos = [h['tipo_vuln'] for h in hallazgos if h['tipo_vuln']]
-                severidades = [h['severidad'] for h in hallazgos if h['severidad']]
-                
+                severidades = [h['severidad']
+                               for h in hallazgos if h['severidad']]
+
                 total_vuln = len(hallazgos)
-                
+
                 # Determinar severidad máxima
                 if 'Critico' in severidades:
                     max_severidad = 'Critico'
@@ -866,15 +907,17 @@ def obtener_historial_escaneos(usuario_id):
                 else:
                     max_severidad = 'Sin riesgo'
                     clase_badge = 'bg-green-600'
-                
+
                 # Tipos de vulnerabilidad
                 tipos_str = ', '.join(set(tipos)) if tipos else 'Ninguna'
-                
+
                 # Formatear fecha
                 fecha_obj = escaneo['fecha']
-                fecha_str = fecha_obj.strftime('%d/%m/%Y') if fecha_obj else '00/00/0000'
-                hora_str = fecha_obj.strftime('%H:%M') if fecha_obj else '00:00'
-                
+                fecha_str = fecha_obj.strftime(
+                    '%d/%m/%Y') if fecha_obj else '00/00/0000'
+                hora_str = fecha_obj.strftime(
+                    '%H:%M') if fecha_obj else '00:00'
+
                 historial.append({
                     'id': escaneo_id,
                     'url': escaneo['url'],
@@ -886,14 +929,14 @@ def obtener_historial_escaneos(usuario_id):
                     'severidad': max_severidad,
                     'clase_badge': clase_badge
                 })
-                
+
             except Exception as e:
                 print(f"❌ Error procesando escaneo {escaneo_id}: {e}")
                 continue
-        
+
         print(f"✅ Historial formateado: {len(historial)} escaneos")
         return historial
-        
+
     except Exception as e:
         print(f"❌ Error en obtener_historial_escaneos: {e}")
         import traceback
@@ -913,7 +956,7 @@ def obtener_usuario_por_id(usuario_id):
     conexion = conectar()
     if not conexion:
         return None
-    
+
     cursor = conexion.cursor(cursor_factory=RealDictCursor)
     try:
         cursor.execute('''
@@ -926,7 +969,7 @@ def obtener_usuario_por_id(usuario_id):
             FROM "Usuario"
             WHERE "idUsuario" = %s
         ''', (usuario_id,))
-        
+
         row = cursor.fetchone()
         return dict(row) if row else None
     except Exception as e:
@@ -942,7 +985,7 @@ def existe_usuario(usuario, usuario_id_excluir=None):
     conexion = conectar()
     if not conexion:
         return False
-    
+
     cursor = conexion.cursor()
     try:
         if usuario_id_excluir:
@@ -969,7 +1012,7 @@ def existe_email(email, usuario_id_excluir=None):
     conexion = conectar()
     if not conexion:
         return False
-    
+
     cursor = conexion.cursor()
     try:
         if usuario_id_excluir:
@@ -996,7 +1039,7 @@ def actualizar_usuario(usuario_id, campo, valor):
     conexion = conectar()
     if not conexion:
         return False
-    
+
     cursor = conexion.cursor()
     try:
         if campo == 'usuario':
@@ -1011,7 +1054,7 @@ def actualizar_usuario(usuario_id, campo, valor):
             )
         else:
             return False
-        
+
         conexion.commit()
         return cursor.rowcount > 0
     except Exception as e:
@@ -1028,7 +1071,7 @@ def actualizar_contrasena(usuario_id, nuevo_hash):
     conexion = conectar()
     if not conexion:
         return False
-    
+
     cursor = conexion.cursor()
     try:
         cursor.execute(

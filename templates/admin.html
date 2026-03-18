@@ -1,22 +1,25 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VulnShield Admin - Estadísticas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
     <style>
-                /* Ajuste para que escaneos recientes ocupe todo el espacio vertical */
-                .custom-scrollbar {
-                    height: 300px;
-                    max-height: 100%;
-                    min-height: 0;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: flex-start;
-                }
+        /* Ajuste para que escaneos recientes ocupe todo el espacio vertical */
+        .custom-scrollbar {
+            height: 300px;
+            max-height: 100%;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+        }
+
         :root {
             --c1: #022f40;
             --c2: #38aecc;
@@ -32,15 +35,25 @@
             color: var(--white);
         }
 
-        .bg-\[\#0f172a\] { background-color: var(--c4) !important; }
-        .bg-slate-900\/70 { background-color: var(--c1) !important; }
+        .bg-\[\#0f172a\] {
+            background-color: var(--c4) !important;
+        }
+
+        .bg-slate-900\/70 {
+            background-color: var(--c1) !important;
+        }
+
         .bg-sky-500\/10,
         .bg-emerald-500\/20,
-        .bg-red-500\/20 { background-color: var(--c5) !important; }
+        .bg-red-500\/20 {
+            background-color: var(--c5) !important;
+        }
 
         .border-slate-800,
         .border-sky-500\/20,
-        .hover\:border-sky-500\/50:hover { border-color: var(--c3) !important; }
+        .hover\:border-sky-500\/50:hover {
+            border-color: var(--c3) !important;
+        }
 
         .text-white,
         .text-slate-400,
@@ -50,14 +63,20 @@
         .text-sky-200,
         .text-red-400,
         .text-red-500,
-        .text-emerald-400 { color: var(--white) !important; }
+        .text-emerald-400 {
+            color: var(--white) !important;
+        }
 
         .bg-sky-500,
         .group-hover\:bg-sky-400:hover,
         .hover\:bg-slate-800:hover,
-        .hover\:bg-sky-500\/20:hover { background-color: var(--c3) !important; }
+        .hover\:bg-sky-500\/20:hover {
+            background-color: var(--c3) !important;
+        }
 
-        .shadow-sky-900\/30 { box-shadow: 0 16px 40px var(--c1) !important; }
+        .shadow-sky-900\/30 {
+            box-shadow: 0 16px 40px var(--c1) !important;
+        }
 
         .severidad-badge {
             background: var(--c5);
@@ -65,16 +84,29 @@
             border: 1px solid var(--c3);
         }
 
-        .chart-container { position: relative; height: 300px; width: 100%; }
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
 
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: var(--c4); }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: var(--c4);
+        }
+
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: var(--c2);
             border-radius: 9999px;
             border: 2px solid var(--c4);
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--c3); }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: var(--c3);
+        }
 
         .user-menu {
             opacity: 0;
@@ -126,19 +158,24 @@
         }
     </style>
 </head>
+
 <body class="text-white font-sans">
 
     <nav class="bg-[#0f172a] border-b border-slate-800 px-6 py-3 flex justify-between items-center sticky top-0 z-50">
         <div class="flex items-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-sky-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-sky-400" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
             </svg>
             <span class="text-xl font-bold tracking-tight">VulnShield <span class="text-sky-400">Scanner</span></span>
         </div>
 
         <div class="relative">
-            <button id="user-menu-trigger" type="button" class="flex items-center gap-3 hover:bg-slate-800 p-2 rounded-lg transition group">
-                <div class="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center font-bold text-slate-900 group-hover:bg-sky-400 transition">
+            <button id="user-menu-trigger" type="button"
+                class="flex items-center gap-3 hover:bg-slate-800 p-2 rounded-lg transition group">
+                <div
+                    class="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center font-bold text-slate-900 group-hover:bg-sky-400 transition">
                     {{ username[0]|upper if username else 'A' }}
                 </div>
                 <div class="flex flex-col leading-none hidden md:flex text-left">
@@ -147,9 +184,11 @@
                 </div>
             </button>
 
-            <div id="user-menu" class="user-menu absolute right-0 mt-2 w-52 rounded-xl border border-sky-500/20 bg-[#0f172a] shadow-2xl shadow-sky-900/30 p-2 z-50">
+            <div id="user-menu"
+                class="user-menu absolute right-0 mt-2 w-52 rounded-xl border border-sky-500/20 bg-[#0f172a] shadow-2xl shadow-sky-900/30 p-2 z-50">
                 <p class="px-3 py-2 text-[11px] uppercase tracking-wider text-slate-400 font-bold">Cuenta</p>
-                <button type="button" class="w-full text-left px-3 py-2 rounded-lg text-sm bg-sky-500/10 text-sky-300 border border-sky-500/20 hover:bg-sky-500/20 hover:text-sky-200 hover:border-sky-400/40 transition font-semibold">
+                <button type="button"
+                    class="w-full text-left px-3 py-2 rounded-lg text-sm bg-sky-500/10 text-sky-300 border border-sky-500/20 hover:bg-sky-500/20 hover:text-sky-200 hover:border-sky-400/40 transition font-semibold">
                     Cerrar Sesión
                 </button>
             </div>
@@ -157,7 +196,7 @@
     </nav>
 
     <main class="p-6 max-w-7xl mx-auto space-y-6">
-        
+
         <div class="flex items-end justify-between border-l-4 border-sky-400 pl-4">
             <div>
                 <h1 class="text-2xl font-bold">Panel de Control General</h1>
@@ -171,7 +210,8 @@
                 <p class="text-slate-400 text-xs font-bold uppercase tracking-wider">Usuarios en la Plataforma</p>
                 <h3 class="text-4xl font-black mt-2" id="total-usuarios">0</h3>
                 <div class="mt-4 flex items-center gap-2">
-                    <span class="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-1 rounded-full font-bold" id="porcentaje-usuarios">+0%</span>
+                    <span class="bg-emerald-500/20 text-emerald-400 text-[10px] px-2 py-1 rounded-full font-bold"
+                        id="porcentaje-usuarios">+0%</span>
                     <span class="text-slate-500 text-[10px]" id="nuevos-usuarios">vs mes anterior</span>
                 </div>
             </div>
@@ -241,10 +281,15 @@
 
             <!-- Formulario para crear administrador -->
             <form id="admin-create-form" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-6">
-                <input id="nuevo-usuario" type="text" placeholder="Usuario *" class="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 focus:outline-none focus:border-sky-400" required>
-                <input id="nuevo-email" type="email" maxlength="50" placeholder="Correo electrónico *" class="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 focus:outline-none focus:border-sky-400" required>
+                <input id="nuevo-usuario" type="text" placeholder="Usuario *"
+                    class="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 focus:outline-none focus:border-sky-400"
+                    required>
+                <input id="nuevo-email" type="email" maxlength="100" placeholder="Correo electrónico *"
+                    class="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 focus:outline-none focus:border-sky-400"
+                    required>
                 <div class="relative">
-                    <div id="admin-password-popup" class="help-popup absolute bottom-full left-0 mb-2 w-full p-3 rounded-lg text-xs opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 z-50">
+                    <div id="admin-password-popup"
+                        class="help-popup absolute bottom-full left-0 mb-2 w-full p-3 rounded-lg text-xs opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 z-50">
                         <p class="font-bold mb-1">Requisitos (Máx. 20 carac.):</p>
                         <ul class="space-y-1">
                             <li id="admin-req-length" class="req-invalid">• Entre 8 y 20 caracteres</li>
@@ -252,15 +297,22 @@
                             <li id="admin-req-case" class="req-invalid">• Mayúscula y minúscula</li>
                         </ul>
                     </div>
-                    <input id="nueva-contrasena" type="password" maxlength="20" placeholder="Contraseña *" class="w-full px-3 py-2 pr-10 rounded bg-slate-900 border border-slate-700 focus:outline-none focus:border-sky-400" required>
-                    <button id="toggle-admin-password" type="button" class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors" aria-label="Mostrar u ocultar contraseña">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <input id="nueva-contrasena" type="password" maxlength="20" placeholder="Contraseña *"
+                        class="w-full px-3 py-2 pr-10 rounded bg-slate-900 border border-slate-700 focus:outline-none focus:border-sky-400"
+                        required>
+                    <button id="toggle-admin-password" type="button"
+                        class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors"
+                        aria-label="Mostrar u ocultar contraseña">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24"
+                            stroke="currentColor" stroke-width="2">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                            <path stroke-linecap="round" stroke-linejoin="round"
+                                d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                         </svg>
                     </button>
                 </div>
-                <button type="submit" class="px-4 py-2 rounded bg-sky-500 hover:bg-sky-400 font-semibold text-slate-900 transition-all">
+                <button type="submit"
+                    class="px-4 py-2 rounded bg-sky-500 hover:bg-sky-400 font-semibold text-slate-900 transition-all">
                     Agregar Administrador
                 </button>
             </form>
@@ -277,54 +329,54 @@
     </main>
 
     <script>
-                // Gráfica de barras SQLi/XSS y actualización de contadores
-                let threatBarChart = null;
-                function actualizarBarChartSQLiXSS(frecuenciaTipos) {
-                    // Filtrar solo SQL Injection y XSS
-                    const sqli = frecuenciaTipos.find(item => item[0] === 'SQL Injection') || ["SQL Injection", 0];
-                    const xss = frecuenciaTipos.find(item => item[0] === 'XSS') || ["XSS", 0];
-                    const total = (parseInt(sqli[1]) || 0) + (parseInt(xss[1]) || 0);
-                    // Actualizar contadores
-                    document.getElementById('sqli-count').textContent = sqli[1];
-                    document.getElementById('xss-count').textContent = xss[1];
-                    // Actualizar porcentajes
-                    document.getElementById('sqli-percent').textContent = total > 0 ? ((parseInt(sqli[1]) / total) * 100).toFixed(1) + '%' : '0%';
-                    document.getElementById('xss-percent').textContent = total > 0 ? ((parseInt(xss[1]) / total) * 100).toFixed(1) + '%' : '0%';
-                    // Actualizar gráfica de barras
-                    const chartElement = document.getElementById('threatTypeBarChart');
-                    if (!chartElement) return;
-                    if (threatBarChart) {
-                        threatBarChart.destroy();
-                        threatBarChart = null;
+        // Gráfica de barras SQLi/XSS y actualización de contadores
+        let threatBarChart = null;
+        function actualizarBarChartSQLiXSS(frecuenciaTipos) {
+            // Filtrar solo SQL Injection y XSS
+            const sqli = frecuenciaTipos.find(item => item[0] === 'SQL Injection') || ["SQL Injection", 0];
+            const xss = frecuenciaTipos.find(item => item[0] === 'XSS') || ["XSS", 0];
+            const total = (parseInt(sqli[1]) || 0) + (parseInt(xss[1]) || 0);
+            // Actualizar contadores
+            document.getElementById('sqli-count').textContent = sqli[1];
+            document.getElementById('xss-count').textContent = xss[1];
+            // Actualizar porcentajes
+            document.getElementById('sqli-percent').textContent = total > 0 ? ((parseInt(sqli[1]) / total) * 100).toFixed(1) + '%' : '0%';
+            document.getElementById('xss-percent').textContent = total > 0 ? ((parseInt(xss[1]) / total) * 100).toFixed(1) + '%' : '0%';
+            // Actualizar gráfica de barras
+            const chartElement = document.getElementById('threatTypeBarChart');
+            if (!chartElement) return;
+            if (threatBarChart) {
+                threatBarChart.destroy();
+                threatBarChart = null;
+            }
+            const options = {
+                chart: {
+                    type: 'bar',
+                    height: 300,
+                    background: 'transparent'
+                },
+                series: [{
+                    name: 'Vulnerabilidades',
+                    data: [parseInt(sqli[1]) || 0, parseInt(xss[1]) || 0]
+                }],
+                xaxis: {
+                    categories: ['SQL Injection', 'XSS'],
+                    labels: {
+                        style: { colors: ['#dc2626', '#f97316'], fontWeight: 700 }
                     }
-                    const options = {
-                        chart: {
-                            type: 'bar',
-                            height: 300,
-                            background: 'transparent'
-                        },
-                        series: [{
-                            name: 'Vulnerabilidades',
-                            data: [parseInt(sqli[1]) || 0, parseInt(xss[1]) || 0]
-                        }],
-                        xaxis: {
-                            categories: ['SQL Injection', 'XSS'],
-                            labels: {
-                                style: { colors: ['#dc2626', '#f97316'], fontWeight: 700 }
-                            }
-                        },
-                        colors: ['#dc2626', '#f97316'],
-                        dataLabels: {
-                            enabled: true,
-                            style: { colors: ['#ffffff'] }
-                        },
-                        tooltip: { theme: 'dark' },
-                        legend: { show: false },
-                        noData: { text: 'Sin datos', style: { color: '#ffffff' } }
-                    };
-                    threatBarChart = new ApexCharts(chartElement, options);
-                    threatBarChart.render();
-                }
+                },
+                colors: ['#dc2626', '#f97316'],
+                dataLabels: {
+                    enabled: true,
+                    style: { colors: ['#ffffff'] }
+                },
+                tooltip: { theme: 'dark' },
+                legend: { show: false },
+                noData: { text: 'Sin datos', style: { color: '#ffffff' } }
+            };
+            threatBarChart = new ApexCharts(chartElement, options);
+            threatBarChart.render();
+        }
         // Variables globales para los gráficos
         let threatChart = null;
         const adminPrincipal = 'admin';
@@ -340,30 +392,30 @@
             try {
                 const response = await fetch('/api/dashboard-data');
                 const data = await response.json();
-                
+
                 if (data.error) {
                     console.error('Error:', data.error);
                     return;
                 }
-                
+
                 // Actualizar cards
                 document.getElementById('total-usuarios').textContent = data.usuarios?.total || 0;
                 const porcentaje = ((data.usuarios?.nuevos || 0) / (data.usuarios?.total || 1) * 100).toFixed(1);
                 document.getElementById('porcentaje-usuarios').textContent = `+${porcentaje}%`;
                 document.getElementById('nuevos-usuarios').textContent = `${data.usuarios?.nuevos || 0} nuevos`;
-                
+
                 document.getElementById('vulnerabilidades-criticas').textContent = data.vulnerabilidades_criticas || 0;
                 document.getElementById('total-links').textContent = data.links_escaneados?.total || 0;
                 document.getElementById('links-hoy').textContent = `Últimas 24 horas: ${data.links_escaneados?.hoy || 0}`;
-                
+
                 // Actualizar gráfica de barras SQLi/XSS
                 actualizarBarChartSQLiXSS(data.frecuencia_tipos || []);
                 // Actualizar gráfica general (donut)
                 actualizarGrafica(data.frecuencia_tipos || []);
-                
+
                 // Actualizar lista de escaneos recientes
                 actualizarEscaneosRecientes(data.escaneos_recientes || []);
-                
+
             } catch (error) {
                 console.error('Error cargando datos:', error);
             }
@@ -374,7 +426,7 @@
             if (!feedback) return;
             feedback.textContent = mensaje;
             feedback.className = `text-sm mb-3 ${esError ? 'text-red-400' : 'text-emerald-400'}`;
-            
+
             // Limpiar después de 5 segundos
             setTimeout(() => {
                 feedback.textContent = '';
@@ -474,13 +526,13 @@
         function actualizarGrafica(frecuenciaTipos) {
             const chartElement = document.getElementById('threatTypePieChart');
             if (!chartElement) return;
-            
+
             // Destruir gráfica anterior si existe
             if (threatChart) {
                 threatChart.destroy();
                 threatChart = null;
             }
-            
+
             // Preparar datos para la gráfica
             const tipos = frecuenciaTipos.map(item => item[0]);
             const valores = frecuenciaTipos.map(item => parseInt(item[1]) || 0);
@@ -550,12 +602,12 @@
 
         function actualizarEscaneosRecientes(escaneos) {
             const contenedor = document.getElementById('escaneos-recientes');
-            
+
             if (!escaneos || escaneos.length === 0) {
                 contenedor.innerHTML = '<div class="text-center text-slate-500 py-8">No hay escaneos recientes</div>';
                 return;
             }
-            
+
             let html = '';
             escaneos.forEach(scan => {
                 const severidad = (scan.severidad_texto || '').toLowerCase();
@@ -585,7 +637,7 @@
                     </div>
                 `;
             });
-            
+
             contenedor.innerHTML = html;
         }
 
@@ -660,7 +712,7 @@
                             contrasena
                         })
                     });
-                    
+
                     const data = await response.json();
 
                     if (!response.ok) {
@@ -676,10 +728,10 @@
                     adminReqLength.classList.add('req-invalid');
                     adminReqSpecial.classList.add('req-invalid');
                     adminReqCase.classList.add('req-invalid');
-                    
+
                     mostrarFeedbackAdmin('Administrador creado correctamente.');
                     cargarAdministradores(); // Recargar la lista
-                    
+
                 } catch (error) {
                     mostrarFeedbackAdmin('Error creando administrador.', true);
                 }
@@ -723,4 +775,5 @@
         });
     </script>
 </body>
+
 </html>
