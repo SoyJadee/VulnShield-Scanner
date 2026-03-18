@@ -1,13 +1,18 @@
 <!DOCTYPE html>
 
-<html class="dark" lang="es"><head>
-<meta charset="utf-8"/>
-<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>VulnShield Scanner Dashboard</title>
-<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet"/>
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
-<script id="tailwind-config">
+<html class="dark" lang="es">
+
+<head>
+    <meta charset="utf-8" />
+    <meta content="width=device-width, initial-scale=1.0" name="viewport" />
+    <title>VulnShield Scanner Dashboard</title>
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap"
+        rel="stylesheet" />
+    <link
+        href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap"
+        rel="stylesheet" />
+    <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
             theme: {
@@ -33,13 +38,15 @@
             },
         }
     </script>
-<style>
+    <style>
         body {
             font-family: 'Space Grotesk', sans-serif;
         }
+
         .material-symbols-outlined {
             font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
+
         .status-badge-safe {
             background-color: #10b981;
             color: white;
@@ -53,178 +60,313 @@
         }
     </style>
 </head>
+
 <body class="bg-background-dark text-slate-100 min-h-screen">
-<div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
-<div class="layout-container flex h-full grow flex-col">
-<header class="flex items-center justify-between border-b border-accent-dark/30 px-6 py-4 lg:px-20 bg-container-dark/50 backdrop-blur-md sticky top-0 z-50">
-<div class="flex items-center gap-4">
-<div class="text-primary flex items-center justify-center">
-<span class="material-symbols-outlined text-3xl">shield_with_heart</span>
-</div>
-<h2 class="text-white text-xl font-bold leading-tight tracking-tight">VulnShield Scanner</h2>
-</div>
-<div class="flex items-center gap-6">
-<div class="hidden md:flex gap-4">
-<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-accent-dark/20 text-slate-300 hover:bg-accent-dark/40 transition-colors">
-<span class="material-symbols-outlined">dark_mode</span>
-</button>
-<button class="flex items-center justify-center rounded-xl h-10 w-10 bg-accent-dark/20 text-slate-300 hover:bg-accent-dark/40 transition-colors">
-<span class="material-symbols-outlined">account_circle</span>
-</button>
-</div>
-<div class="h-10 w-10 rounded-full border-2 border-primary/50 bg-cover bg-center" data-alt="User profile avatar with blue border" style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAa6t6BSuIKPUoMaE4vVZXU3UWZDPRoqDybKXbAIg8uTLpNk7M-BYbwqEoFsc1zNDAJgZzIpH2RJPg71F9Q-7AlxLBJDnMyLea1L0jY65Iw0Uv3wP2NsuVVt0g29-SBfw-GyQnh9sW6YAvezDv_LwV2KpWvvyqb-Ol9rrtnkUr1W02lJProlwG6UpZBDZb2wQdGsBErK9p12MWWDabGr24g0qr7q6TOMYG10FhA7L6vniGVtIOGjEIiIMHgrrt6zLuudX50aZuI2oGX')"></div>
-</div>
-</header>
-<main class="flex flex-1 flex-col lg:flex-row">
-<aside class="w-full lg:w-64 border-r border-accent-dark/20 p-6 flex flex-col gap-8 bg-container-dark/20">
-<div class="flex items-center gap-3 px-2">
-<div class="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-background-dark">
-<span class="material-symbols-outlined font-bold">radar</span>
-</div>
-<div class="flex flex-col">
-<h1 class="text-white text-sm font-bold">VulnShield Core</h1>
-<p class="text-primary/70 text-xs font-medium">V1.2.0 Enterprise</p>
-</div>
-</div>
-<nav class="flex flex-col gap-2">
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-background-dark font-bold transition-all" href="#">
-<span class="material-symbols-outlined">dashboard</span>
-<span class="text-sm">Dashboard</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="/escaneos">
-<span class="material-symbols-outlined">document_scanner</span>
-<span class="text-sm">Escaneos</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="#">
-<span class="material-symbols-outlined">description</span>
-<span class="text-sm">Informes</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="#">
-<span class="material-symbols-outlined">lan</span>
-<span class="text-sm">Activos</span>
-</a>
-<a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all" href="#">
-<span class="material-symbols-outlined">settings</span>
-<span class="text-sm">Ajustes</span>
-</a>
-</nav>
-<div class="mt-auto p-4 rounded-xl bg-accent-dark/10 border border-accent-dark/30">
-<p class="text-xs text-slate-400 mb-2">Estado del Sistema</p>
-<div class="flex items-center gap-2">
-<span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
-<span class="text-xs font-medium text-slate-200">Operativo</span>
-</div>
-</div>
-</aside>
-<section class="flex-1 p-6 lg:p-10 flex flex-col gap-8">
-<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-<div>
-<h2 class="text-white text-3xl font-black tracking-tight mb-1">Panel de Control</h2>
-<p class="text-slate-400 text-sm">Monitorización en tiempo real de vulnerabilidades y seguridad de red</p>
-</div>
-</div>
-<div class="grid grid-cols-1 gap-8">
-<!-- Scanner Input Card -->
-<div class="rounded-xl overflow-hidden bg-container-dark border border-accent-dark/30 shadow-2xl flex flex-col items-center justify-center p-8 max-w-4xl mx-auto w-full">
-<div class="flex items-center gap-2 text-primary mb-6">
-<span class="material-symbols-outlined text-3xl">shield</span>
-<h3 class="text-2xl font-bold">VulnShield Scanner</h3>
-</div>
-<div class="w-full space-y-4">
-<div class="flex flex-col md:flex-row gap-0 rounded-lg overflow-hidden border border-accent-dark/50">
-<select class="bg-surface-dark border-none text-slate-200 py-3 px-4 focus:ring-0 cursor-pointer min-w-[120px]">
-<option>HTTPS</option>
-<option>HTTP</option>
-</select>
-<input class="flex-1 bg-surface-dark border-none text-white py-3 px-4 focus:ring-0" placeholder="www.youtube.com/" type="text"/>
-</div>
-<p class="text-xs text-slate-500">URL completa: <span class="text-slate-400">https://www.youtube.com/</span></p>
-<button class="w-full bg-primary hover:bg-primary/90 text-background-dark font-black py-4 rounded-lg transition-transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg uppercase tracking-wide">
-                                INICIAR ESCANEO
-                            </button>
-</div>
-</div>
-<!-- Results Section -->
-<div class="bg-container-dark rounded-xl border border-accent-dark/30 overflow-hidden shadow-lg p-6 max-w-4xl mx-auto w-full">
-<div class="flex items-center gap-2 mb-6">
-<span class="material-symbols-outlined text-primary text-2xl">radar</span>
-<h3 class="text-lg font-bold text-primary uppercase tracking-tight">Resultados del Escaneo</h3>
-</div>
-<div class="space-y-6">
-<!-- URL/Protocol Box -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-px bg-accent-dark/30 border border-accent-dark/30 rounded-lg overflow-hidden">
-<div class="bg-surface-dark/50 p-4">
-<p class="text-xs font-bold text-white mb-1">URL escaneada:</p>
-<p class="text-sm text-primary">https://www.youtube.com/</p>
-</div>
-<div class="bg-surface-dark/50 p-4">
-<p class="text-xs font-bold text-white mb-1">Protocolo:</p>
-<p class="text-sm text-primary">HTTPS</p>
-</div>
-</div>
-<!-- Vuln Table -->
-<div class="border border-accent-dark/30 rounded-lg overflow-hidden">
-<table class="w-full text-left">
-<thead>
-<tr class="bg-surface-dark text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-accent-dark/30">
-<th class="px-6 py-3">Tipo</th>
-<th class="px-6 py-3">Severidad</th>
-<th class="px-6 py-3">Descripción</th>
-</tr>
-</thead>
-<tbody class="bg-surface-dark/30">
-<tr class="border-b border-accent-dark/10">
-<td class="px-6 py-4 text-sm text-slate-200">Ninguna detectada</td>
-<td class="px-6 py-4">
-<span class="status-badge-safe">
-<span class="material-symbols-outlined text-[10px]">check</span>
-                                                SEGURO
-                                            </span>
-</td>
-<td class="px-6 py-4 text-sm text-slate-400">Vulnerabilidad detectada</td>
-</tr>
-</tbody>
-</table>
-</div>
-<!-- Summary Box -->
-<div class="bg-surface-dark/50 p-5 rounded-lg border border-accent-dark/30">
-<p class="text-sm font-bold text-white mb-3">Total vulnerabilidades: <span class="text-primary">0</span></p>
-<div class="flex items-center gap-2 text-green-500">
-<span class="material-symbols-outlined text-sm">check_box</span>
-<span class="text-xs font-medium">No se detectaron vulnerabilidades</span>
-</div>
-</div>
-<!-- Report Action -->
-<div class="pt-4 flex justify-end">
-<button class="flex items-center gap-3 px-8 py-3 rounded-xl border-2 border-accent-mid text-accent-mid font-bold hover:bg-accent-mid hover:text-white transition-all text-sm uppercase tracking-wide">
-<span class="material-symbols-outlined">send</span>
-<span>Enviar Informe de Resultados</span>
-</button>
-</div>
-</div>
-</div>
-<!-- Statistics Grid -->
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto w-full">
-<div class="bg-container-dark p-5 rounded-xl border border-accent-dark/30">
-<div class="flex items-center justify-between mb-2">
-<span class="text-slate-400 text-xs font-bold uppercase tracking-widest">Vulnerabilidades</span>
-<span class="material-symbols-outlined text-red-500">warning</span>
-</div>
-<div class="text-2xl font-bold text-white">42</div>
-<div class="text-xs text-red-400 mt-1">8 Críticas</div>
-</div>
-<div class="bg-container-dark p-5 rounded-xl border border-accent-dark/30">
-<div class="flex items-center justify-between mb-2">
-<span class="text-slate-400 text-xs font-bold uppercase tracking-widest">Escaneos</span>
-<span class="material-symbols-outlined text-accent-mid">history</span>
-</div>
-<div class="text-2xl font-bold text-white">1,208</div>
-<div class="text-xs text-slate-400 mt-1">Último hace 2h</div>
-</div>
-</div>
-</div>
-</section>
-</main>
-</div>
-</div>
-</body></html>
+    <div class="relative flex h-auto min-h-screen w-full flex-col overflow-x-hidden">
+        <div class="layout-container flex h-full grow flex-col">
+            <header
+                class="flex items-center justify-between border-b border-accent-dark/30 px-6 py-4 lg:px-20 bg-container-dark/50 backdrop-blur-md sticky top-0 z-50">
+                <div class="flex items-center gap-4">
+                    <div class="text-primary flex items-center justify-center">
+                        <span class="material-symbols-outlined text-3xl">shield_with_heart</span>
+                    </div>
+                    <h2 class="text-white text-xl font-bold leading-tight tracking-tight">VulnShield Scanner</h2>
+                </div>
+                <div class="flex items-center gap-6">
+                    <div class="hidden md:flex gap-4">
+                        <button
+                            class="flex items-center justify-center rounded-xl h-10 w-10 bg-accent-dark/20 text-slate-300 hover:bg-accent-dark/40 transition-colors">
+                            <span class="material-symbols-outlined">dark_mode</span>
+                        </button>
+                        <button
+                            class="flex items-center justify-center rounded-xl h-10 w-10 bg-accent-dark/20 text-slate-300 hover:bg-accent-dark/40 transition-colors">
+                            <span class="material-symbols-outlined">account_circle</span>
+                        </button>
+                    </div>
+                    <div class="h-10 w-10 rounded-full border-2 border-primary/50 bg-cover bg-center"
+                        data-alt="User profile avatar with blue border"
+                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAa6t6BSuIKPUoMaE4vVZXU3UWZDPRoqDybKXbAIg8uTLpNk7M-BYbwqEoFsc1zNDAJgZzIpH2RJPg71F9Q-7AlxLBJDnMyLea1L0jY65Iw0Uv3wP2NsuVVt0g29-SBfw-GyQnh9sW6YAvezDv_LwV2KpWvvyqb-Ol9rrtnkUr1W02lJProlwG6UpZBDZb2wQdGsBErK9p12MWWDabGr24g0qr7q6TOMYG10FhA7L6vniGVtIOGjEIiIMHgrrt6zLuudX50aZuI2oGX')">
+                    </div>
+                </div>
+            </header>
+            <main class="flex flex-1 flex-col lg:flex-row">
+                <aside
+                    class="w-full lg:w-64 border-r border-accent-dark/20 p-6 flex flex-col gap-8 bg-container-dark/20">
+                    <div class="flex items-center gap-3 px-2">
+                        <div
+                            class="h-10 w-10 rounded-xl bg-primary flex items-center justify-center text-background-dark">
+                            <span class="material-symbols-outlined font-bold">radar</span>
+                        </div>
+                        <div class="flex flex-col">
+                            <h1 class="text-white text-sm font-bold">VulnShield Core</h1>
+                            <p class="text-primary/70 text-xs font-medium">V1.2.0 Enterprise</p>
+                        </div>
+                    </div>
+                    <nav class="flex flex-col gap-2">
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-background-dark font-bold transition-all"
+                            href="#">
+                            <span class="material-symbols-outlined">dashboard</span>
+                            <span class="text-sm">Dashboard</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all"
+                            href="/escaneos">
+                            <span class="material-symbols-outlined">document_scanner</span>
+                            <span class="text-sm">Escaneos</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all"
+                            href="#">
+                            <span class="material-symbols-outlined">description</span>
+                            <span class="text-sm">Informes</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all"
+                            href="#">
+                            <span class="material-symbols-outlined">lan</span>
+                            <span class="text-sm">Activos</span>
+                        </a>
+                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all"
+                            href="#">
+                            <span class="material-symbols-outlined">settings</span>
+                            <span class="text-sm">Ajustes</span>
+                        </a>
+                    </nav>
+                    <div class="mt-auto p-4 rounded-xl bg-accent-dark/10 border border-accent-dark/30">
+                        <p class="text-xs text-slate-400 mb-2">Estado del Sistema</p>
+                        <div class="flex items-center gap-2">
+                            <span class="h-2 w-2 rounded-full bg-green-500 animate-pulse"></span>
+                            <span class="text-xs font-medium text-slate-200">Operativo</span>
+                        </div>
+                    </div>
+                </aside>
+                <section class="flex-1 p-6 lg:p-10 flex flex-col gap-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                        <div>
+                            <h2 class="text-white text-3xl font-black tracking-tight mb-1">Panel de Control</h2>
+                            <p class="text-slate-400 text-sm">Monitorización en tiempo real de vulnerabilidades y
+                                seguridad de red</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-8">
+                        {% set limite_escaneo = (resultados|selectattr('tipo', 'equalto', 'Limite de
+                        escaneo')|list|first) if resultados else None %}
+                        {% set entrada_invalida = (resultados|selectattr('tipo', 'equalto', 'Entrada
+                        invalida')|list|first) if resultados else None %}
+                        <div id="scanAlerts" class="max-w-4xl mx-auto w-full space-y-3">
+                            {% if limite_escaneo %}
+                            <div
+                                class="max-w-4xl mx-auto w-full rounded-xl border border-amber-400/40 bg-amber-500/10 px-5 py-4">
+                                <div class="flex items-start gap-3">
+                                    <span class="material-symbols-outlined text-amber-300">timer</span>
+                                    <div>
+                                        <p class="text-sm font-bold text-amber-200 uppercase tracking-wide">Límite de
+                                            escaneo alcanzado</p>
+                                        <p class="text-sm text-amber-100/90 mt-1">{{ limite_escaneo.descripcion }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                            {% if entrada_invalida %}
+                            <div
+                                class="max-w-4xl mx-auto w-full rounded-xl border border-rose-400/40 bg-rose-500/10 px-5 py-4">
+                                <div class="flex items-start gap-3">
+                                    <span class="material-symbols-outlined text-rose-300">error</span>
+                                    <div>
+                                        <p class="text-sm font-bold text-rose-200 uppercase tracking-wide">URL no válida
+                                        </p>
+                                        <p class="text-sm text-rose-100/90 mt-1">{{ entrada_invalida.descripcion }}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <!-- Scanner Input Card -->
+                        <div
+                            class="rounded-xl overflow-hidden bg-container-dark border border-accent-dark/30 shadow-2xl flex flex-col items-center justify-center p-8 max-w-4xl mx-auto w-full">
+                            <div class="flex items-center gap-2 text-primary mb-6">
+                                <span class="material-symbols-outlined text-3xl">shield</span>
+                                <h3 class="text-2xl font-bold">VulnShield Scanner</h3>
+                            </div>
+                            <form id="scanForm" class="w-full space-y-4" method="POST" action="/">
+                                <div
+                                    class="flex flex-col md:flex-row gap-0 rounded-lg overflow-hidden border border-accent-dark/50">
+                                    <select id="protocoloInput"
+                                        class="bg-surface-dark border-none text-slate-200 py-3 px-4 focus:ring-0 cursor-pointer min-w-[120px]"
+                                        name="protocolo">
+                                        <option value="https://" {% if protocolo_usado=='HTTPS' %}selected{% endif %}>
+                                            HTTPS</option>
+                                        <option value="http://" {% if protocolo_usado=='HTTP' %}selected{% endif %}>HTTP
+                                        </option>
+                                    </select>
+                                    <input id="urlInput"
+                                        class="flex-1 bg-surface-dark border-none text-white py-3 px-4 focus:ring-0"
+                                        name="url" placeholder="www.youtube.com/" type="text" maxlength="512"
+                                        value="{{ url_escaneada|default('', true)|replace('https://', '')|replace('http://', '') }}" />
+                                </div>
+                                <p id="urlFieldError"
+                                    class="hidden items-center gap-2 text-xs text-rose-200 bg-rose-500/10 border border-rose-400/30 rounded-lg px-3 py-2">
+                                    <span class="material-symbols-outlined text-sm text-rose-300">error</span>
+                                    <span id="urlFieldErrorText">Necesitas ingresar una URL.</span>
+                                </p>
+                                <p class="text-xs text-slate-500">URL completa: <span id="urlPreview"
+                                        class="text-slate-400">{{
+                                        url_escaneada or 'https://www.youtube.com/' }}</span></p>
+                                <button id="scanButton"
+                                    class="w-full bg-primary hover:bg-primary/90 text-background-dark font-black py-4 rounded-lg transition-transform active:scale-[0.98] flex items-center justify-center gap-2 text-lg uppercase tracking-wide"
+                                    type="submit">
+                                    INICIAR ESCANEO
+                                </button>
+                            </form>
+                        </div>
+                        <div id="scanProgressCard"
+                            class="max-w-4xl mx-auto w-full rounded-xl border border-primary/30 bg-primary/10 px-5 py-4 hidden">
+                            <div class="flex items-start gap-3 mb-3">
+                                <span class="material-symbols-outlined text-primary">radar</span>
+                                <div>
+                                    <p class="text-sm font-bold text-cyan-200 uppercase tracking-wide">Escaneo en
+                                        progreso</p>
+                                    <p id="scanProgressMessage" class="text-sm text-cyan-100/90 mt-1">Inicializando
+                                        motor de análisis...</p>
+                                </div>
+                            </div>
+                            <div class="w-full bg-surface-dark/70 rounded-full h-2 overflow-hidden">
+                                <div id="scanProgressBar" class="h-2 bg-primary transition-all duration-300"
+                                    style="width: 0%"></div>
+                            </div>
+                            <ul id="scanStepList" class="mt-4 space-y-2 text-xs text-slate-300"></ul>
+                        </div>
+                        <!-- Results Section -->
+                        <div
+                            class="bg-container-dark rounded-xl border border-accent-dark/30 overflow-hidden shadow-lg p-6 max-w-4xl mx-auto w-full">
+                            <div class="flex items-center gap-2 mb-6">
+                                <span class="material-symbols-outlined text-primary text-2xl">radar</span>
+                                <h3 class="text-lg font-bold text-primary uppercase tracking-tight">Resultados del
+                                    Escaneo</h3>
+                            </div>
+                            <div class="space-y-6">
+                                <!-- URL/Protocol Box -->
+                                <div
+                                    class="grid grid-cols-1 md:grid-cols-2 gap-px bg-accent-dark/30 border border-accent-dark/30 rounded-lg overflow-hidden">
+                                    <div class="bg-surface-dark/50 p-4 min-w-0">
+                                        <p class="text-xs font-bold text-white mb-1">URL escaneada:</p>
+                                        <p id="resultUrl" class="text-sm text-primary break-all leading-relaxed">{{
+                                            url_escaneada or 'Sin escaneo
+                                            aún' }}</p>
+                                    </div>
+                                    <div class="bg-surface-dark/50 p-4 min-w-0">
+                                        <p class="text-xs font-bold text-white mb-1">Protocolo:</p>
+                                        <p id="resultProtocol" class="text-sm text-primary whitespace-nowrap">{{
+                                            protocolo_usado or 'No
+                                            especificado' }}</p>
+                                    </div>
+                                </div>
+                                {% set total_vulnerabilidades = resultados
+                                | rejectattr('tipo', 'equalto', 'Ninguna detectada')
+                                | rejectattr('tipo', 'equalto', 'Limite de escaneo')
+                                | list
+                                | length if resultados else 0 %}
+                                <div class="bg-surface-dark/50 p-5 rounded-lg border border-accent-dark/30">
+                                    <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                                        <p class="text-sm font-bold text-white">Total vulnerabilidades: <span
+                                                id="totalVuln" class="text-primary">{{ total_vulnerabilidades }}</span>
+                                        </p>
+                                        {% if total_vulnerabilidades == 0 %}
+                                        <div id="summaryStatus" class="flex items-center gap-2 text-green-500">
+                                            <span class="material-symbols-outlined text-sm">check_box</span>
+                                            <span class="text-xs font-medium">No se detectaron vulnerabilidades</span>
+                                        </div>
+                                        {% else %}
+                                        <div id="summaryStatus" class="flex items-center gap-2 text-yellow-300">
+                                            <span class="material-symbols-outlined text-sm">warning</span>
+                                            <span class="text-xs font-medium">Vulnerabilidades detectadas</span>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                                <!-- Vuln Table -->
+                                <div class="border border-accent-dark/30 rounded-lg overflow-hidden">
+                                    <table class="w-full text-left">
+                                        <thead>
+                                            <tr
+                                                class="bg-surface-dark text-[10px] font-bold uppercase tracking-widest text-slate-400 border-b border-accent-dark/30">
+                                                <th class="px-6 py-3">Tipo</th>
+                                                <th class="px-6 py-3">Severidad</th>
+                                                <th class="px-6 py-3">Descripción</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="resultsBody" class="bg-surface-dark/30">
+                                            {% if resultados %}
+                                            {% for r in resultados %}
+                                            <tr class="border-b border-accent-dark/10">
+                                                <td class="px-6 py-4 text-sm text-slate-200">{{ r.tipo }}</td>
+                                                <td class="px-6 py-4">
+                                                    {% if r.tipo == 'Ninguna detectada' %}
+                                                    <span class="status-badge-safe">
+                                                        <span class="material-symbols-outlined text-[10px]">check</span>
+                                                        SEGURO
+                                                    </span>
+                                                    {% else %}
+                                                    <span
+                                                        class="text-xs font-semibold {% if r.severidad == 'Alta' %}text-red-400{% elif r.severidad == 'Media' %}text-yellow-300{% else %}text-sky-300{% endif %}">{{
+                                                        r.severidad }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td class="px-6 py-4 text-sm text-slate-400">{{ r.descripcion or 'Sin
+                                                    descripción' }}</td>
+                                            </tr>
+                                            {% endfor %}
+                                            {% else %}
+                                            <tr class="border-b border-accent-dark/10">
+                                                <td class="px-6 py-4 text-sm text-slate-200">Ninguna detectada</td>
+                                                <td class="px-6 py-4"><span
+                                                        class="text-xs font-semibold text-slate-400">-</span></td>
+                                                <td class="px-6 py-4 text-sm text-slate-400">Ejecuta un escaneo para ver
+                                                    resultados</td>
+                                            </tr>
+                                            {% endif %}
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <!-- Report Action -->
+                                <div class="pt-4 flex flex-col items-end gap-2">
+                                    <button id="sendReportButton" type="button" data-escaneo-id="{{ ultimo_escaneo_id or '' }}"
+                                        class="flex items-center gap-3 px-8 py-3 rounded-xl border-2 border-accent-mid text-accent-mid font-bold hover:bg-accent-mid hover:text-white transition-all text-sm uppercase tracking-wide">
+                                        <span class="material-symbols-outlined">send</span>
+                                        <span>Enviar Informe de Resultados</span>
+                                    </button>
+                                    <p id="sendReportStatus" class="hidden text-xs text-slate-300"></p>
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Statistics Grid -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 max-w-4xl mx-auto w-full">
+                            <div class="bg-container-dark p-5 rounded-xl border border-accent-dark/30">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span
+                                        class="text-slate-400 text-xs font-bold uppercase tracking-widest">Vulnerabilidades</span>
+                                    <span class="material-symbols-outlined text-red-500">warning</span>
+                                </div>
+                                <div id="statsTotalHallazgos" class="text-2xl font-bold text-white">{{
+                                    total_hallazgos_bd or 0 }}</div>
+                                <div id="statsCriticas" class="text-xs text-red-400 mt-1">{{ total_criticas_bd or 0 }}
+                                    Críticas/Altas</div>
+                            </div>
+                            <div class="bg-container-dark p-5 rounded-xl border border-accent-dark/30">
+                                <div class="flex items-center justify-between mb-2">
+                                    <span
+                                        class="text-slate-400 text-xs font-bold uppercase tracking-widest">Escaneos</span>
+                                    <span class="material-symbols-outlined text-accent-mid">history</span>
+                                </div>
+                                <div id="statsTotalEscaneos" class="text-2xl font-bold text-white">{{ total_escaneos_bd
+                                    or 0 }}</div>
+                                <div id="statsEscaneosHoy" class="text-xs text-slate-400 mt-1">{{ escaneos_hoy_bd or 0
+                                    }} hoy</div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='js/dashboard-scan.js') }}"></script>
+</body>
+
+</html>

@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vista Previa de Informe - VulnShield</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #022f40;
+            color: #ffffff;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+
+        @media print {
+            .no-print {
+                display: none;
+            }
+
+            body {
+                background-color: #022f40 !important;
+            }
+
+            .bg-card {
+                background-color: #183446 !important;
+            }
+        }
+
+        .bg-card {
+            background-color: #183446;
+        }
+
+        .border-slate {
+            border-color: #0090c1;
+        }
+
+        .bg-ink,
+        .bg-slate-950\/50,
+        .bg-slate-900\/50,
+        .bg-slate-900 {
+            background-color: #022f40 !important;
+        }
+
+        .border-slate-800,
+        .border-slate-900,
+        .border-slate {
+            border-color: #0090c1 !important;
+        }
+
+        .text-soft {
+            color: #ffffff !important;
+        }
+
+        .btn-primary {
+            background-color: #046e8f !important;
+            color: #ffffff !important;
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.05);
+        }
+    </style>
+</head>
+
+<body class="p-0 m-0">
+    {% set total_hallazgos = reporte.total_hallazgos if reporte else 0 %}
+    {% set puntaje_raw = 100 - (total_hallazgos * 20) %}
+    {% if puntaje_raw < 0 %} {% set puntaje=0 %} {% elif puntaje_raw> 100 %}
+        {% set puntaje = 100 %}
+        {% else %}
+        {% set puntaje = puntaje_raw %}
+        {% endif %}
+
+        {% if total_hallazgos == 0 %}
+        {% set riesgo_texto = 'RIESGO BAJO' %}
+        {% set riesgo_color = 'text-emerald-300' %}
+        {% set anillo_color = 'border-emerald-400/40' %}
+        {% elif total_hallazgos <= 2 %} {% set riesgo_texto='RIESGO MEDIO' %} {% set riesgo_color='text-yellow-300' %}
+            {% set anillo_color='border-yellow-400/40' %} {% else %} {% set riesgo_texto='RIESGO ELEVADO' %} {% set
+            riesgo_color='text-red-300' %} {% set anillo_color='border-red-400/40' %} {% endif %} {% if not modo_pdf %}
+            <div
+            class="no-print sticky top-0 z-30 flex flex-col items-center gap-3 py-6 px-4 bg-slate-900/50 border-b border-slate-800 backdrop-blur-sm">
+            {% if reporte %}
+            <button id="generatePdfButton" data-escaneo-id="{{ reporte.escaneo_id }}"
+                class="btn-primary font-extrabold py-2 px-8 rounded-full transition-all shadow-lg">
+                GENERAR PDF Y ENVIAR AL CORREO
+            </button>
+            <p id="pdfStatus" class="hidden text-xs text-slate-100"></p>
+            {% else %}
+            <p class="text-sm text-red-200">No se puede generar el PDF porque no hay datos de escaneo válidos.</p>
+            {% endif %}
+            </div>
+            {% endif %}
+
+            <div class="max-w-4xl mx-auto p-6 md:p-12 bg-ink min-h-screen">
+                {% if error_reporte %}
+                <section class="bg-card p-8 rounded-3xl border border-red-400/40">
+                    <h1 class="text-2xl font-extrabold text-red-200 mb-3">No se pudo cargar la vista previa</h1>
+                    <p class="text-sm text-red-100">{{ error_reporte }}</p>
+                    <a href="/" class="inline-block mt-6 btn-primary px-6 py-2 rounded-full font-bold text-sm">Volver al
+                        dashboard</a>
+                </section>
+                {% else %}
+                <header
+                    class="flex flex-col gap-6 md:flex-row md:justify-between md:items-center border-b border-slate-800 pb-10 mb-10">
+                    <div class="flex items-center gap-4">
+                        <div class="btn-primary p-2 rounded-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8 text-slate-900" fill="none"
+                                viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                                <path stroke-linecap="round" stroke-linejoin="round"
+                                    d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h1 class="text-2xl font-extrabold tracking-tight uppercase">VulnShield <span
+                                    class="text-cyan-300">Scanner</span></h1>
+                            <p class="text-[10px] text-slate-200 font-bold tracking-[0.3em]">VISTA PREVIA DEL INFORME
+                            </p>
+                        </div>
+                    </div>
+                    <div class="text-left md:text-right">
+                        <p class="text-xs font-bold text-cyan-300">FECHA: {{ reporte.fecha.strftime('%d/%m/%Y') if
+                            reporte.fecha else '-' }}</p>
+                        <p class="text-[10px] text-slate-200">ID ESCANEO: #{{ reporte.escaneo_id }}</p>
+                        <p class="text-[10px] text-slate-200">USUARIO: {{ reporte.usuario }}</p>
+                    </div>
+                </header>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    <div
+                        class="bg-card p-8 rounded-3xl border border-slate-800 flex flex-col justify-center items-center text-center">
+                        <p class="text-slate-200 text-xs font-bold uppercase mb-4">Puntaje de Seguridad</p>
+                        <div class="relative flex items-center justify-center">
+                            <div
+                                class="w-32 h-32 rounded-full border-8 {{ anillo_color }} flex items-center justify-center">
+                                <span class="text-4xl font-black text-soft">{{ puntaje }}<span
+                                        class="text-lg text-slate-100">/100</span></span>
+                            </div>
+                        </div>
+                        <p class="{{ riesgo_color }} font-bold mt-4">{{ riesgo_texto }}</p>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="bg-card p-5 rounded-2xl border border-slate-800">
+                            <p class="text-slate-200 text-[10px] font-bold uppercase">URL Analizada</p>
+                            <p class="text-sm font-mono text-cyan-200 break-all">{{ reporte.url }}</p>
+                        </div>
+                        <div class="bg-card p-5 rounded-2xl border border-slate-800">
+                            <p class="text-slate-200 text-[10px] font-bold uppercase">Hallazgos Encontrados</p>
+                            <p class="text-xl font-black text-white">{{ total_hallazgos }} hallazgos</p>
+                            <p class="text-xs text-slate-100 mt-1">Protocolo: {{ reporte.protocolo }}</p>
+                            <p class="text-xs text-slate-100">Destino del informe: {{ reporte.correo }}</p>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="mb-12">
+                    <h2 class="text-lg font-bold mb-6 flex items-center gap-2">
+                        <span class="w-2 h-2 bg-red-400 rounded-full animate-pulse"></span>
+                        Vulnerabilidades Detectadas
+                    </h2>
+
+                    <div class="space-y-4">
+                        {% if reporte.hallazgos %}
+                        {% for hallazgo in reporte.hallazgos %}
+                        {% set sev = (hallazgo.severidad or '')|lower %}
+                        {% if sev == 'critico' %}
+                        {% set severidad_tag = 'Crítico' %}
+                        {% set clase_borde = 'border-l-red-500' %}
+                        {% set clase_chip = 'bg-red-500/20 text-red-200' %}
+                        {% elif sev == 'alto' %}
+                        {% set severidad_tag = 'Alto' %}
+                        {% set clase_borde = 'border-l-orange-400' %}
+                        {% set clase_chip = 'bg-orange-500/20 text-orange-200' %}
+                        {% elif sev == 'medio' %}
+                        {% set severidad_tag = 'Medio' %}
+                        {% set clase_borde = 'border-l-yellow-400' %}
+                        {% set clase_chip = 'bg-yellow-500/20 text-yellow-100' %}
+                        {% else %}
+                        {% set severidad_tag = hallazgo.severidad or 'Bajo' %}
+                        {% set clase_borde = 'border-l-cyan-400' %}
+                        {% set clase_chip = 'bg-cyan-500/20 text-cyan-100' %}
+                        {% endif %}
+
+                        <div class="bg-card p-6 rounded-2xl border border-slate-800 border-l-4 {{ clase_borde }}">
+                            <div class="flex flex-col gap-3 md:flex-row md:justify-between md:items-center mb-3">
+                                <h3 class="font-bold text-white">{{ hallazgo.tipo }}</h3>
+                                <span class="text-[10px] {{ clase_chip }} px-2 py-1 rounded font-black uppercase">{{
+                                    severidad_tag }}</span>
+                            </div>
+                            <p class="text-slate-100 text-xs leading-relaxed mb-3">
+                                {{ hallazgo.descripcion or 'Sin descripción disponible para este hallazgo.' }}
+                            </p>
+                            {% if hallazgo.parametro or hallazgo.payload %}
+                            <div class="btn-primary p-3 rounded-lg border border-slate-800">
+                                <p class="text-[9px] text-slate-100 uppercase font-bold mb-1">Detalle técnico</p>
+                                {% if hallazgo.parametro %}
+                                <p class="text-xs text-white"><strong>Parámetro:</strong> {{ hallazgo.parametro }}</p>
+                                {% endif %}
+                                {% if hallazgo.payload %}
+                                <p class="text-xs text-white break-all"><strong>Payload:</strong>
+                                    <code>{{ hallazgo.payload }}</code>
+                                </p>
+                                {% endif %}
+                            </div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                        {% else %}
+                        <div class="bg-card p-6 rounded-2xl border border-slate-800 border-l-4 border-l-emerald-400">
+                            <div class="flex justify-between items-center mb-3">
+                                <h3 class="font-bold text-white">Sin vulnerabilidades detectadas</h3>
+                                <span
+                                    class="text-[9px] bg-emerald-500/20 text-emerald-100 px-2 py-1 rounded font-black uppercase">Seguro</span>
+                            </div>
+                            <p class="text-slate-100 text-xs leading-relaxed">
+                                Este escaneo no registró hallazgos asociados en la base de datos.
+                            </p>
+                        </div>
+                        {% endif %}
+                    </div>
+                </section>
+
+                <section class="bg-cyan-500/10 p-8 rounded-3xl border border-cyan-500/20">
+                    <h2 class="text-cyan-200 font-black text-xs uppercase tracking-widest mb-4">Recomendaciones de
+                        Seguridad</h2>
+                    <ul class="space-y-3">
+                        {% set ns = namespace(tiene_recomendaciones=false) %}
+                        {% if reporte.hallazgos %}
+                        {% for hallazgo in reporte.hallazgos if hallazgo.recomendacion %}
+                        {% set ns.tiene_recomendaciones = true %}
+                        <li class="flex items-start gap-3 text-xs text-slate-100">
+                            <span class="text-cyan-200 font-bold">{{ '%02d'|format(loop.index) }}.</span>
+                            {{ hallazgo.recomendacion }}
+                        </li>
+                        {% endfor %}
+                        {% endif %}
+                        {% if not ns.tiene_recomendaciones %}
+                        <li class="flex items-start gap-3 text-xs text-slate-100">
+                            <span class="text-cyan-200 font-bold">01.</span>
+                            Mantén tus dependencias y configuraciones actualizadas para reducir superficie de ataque.
+                        </li>
+                        {% endif %}
+                    </ul>
+                </section>
+
+                <footer class="mt-16 pt-8 border-t border-slate-800 text-center">
+                    <p class="text-[10px] text-slate-100 font-bold uppercase tracking-widest">
+                        Informe generado por el motor de análisis VulnShield.
+                    </p>
+                </footer>
+                {% endif %}
+            </div>
+
+            {% if not modo_pdf %}
+            <script>
+                (() => {
+                    const btn = document.getElementById('generatePdfButton');
+                    const status = document.getElementById('pdfStatus');
+                    if (!btn || !status) return;
+
+                    const escaneoId = Number(btn.dataset.escaneoId || 0);
+
+                    const setStatus = (text, isError = false) => {
+                        status.textContent = text;
+                        status.classList.remove('hidden', 'text-green-200', 'text-red-200', 'text-slate-100');
+                        status.classList.add(isError ? 'text-red-200' : 'text-green-200');
+                    };
+
+                    btn.addEventListener('click', async () => {
+                        if (!escaneoId) {
+                            setStatus('No se encontró un escaneo válido para generar el PDF.', true);
+                            return;
+                        }
+
+                        btn.disabled = true;
+                        btn.classList.add('opacity-70', 'cursor-not-allowed');
+                        setStatus('Generando PDF y enviando el informe al correo...');
+
+                        try {
+                            const response = await fetch('/api/reportes/enviar', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ escaneo_id: escaneoId }),
+                            });
+
+                            const data = await response.json().catch(() => ({}));
+                            if (!response.ok) {
+                                setStatus(data.error || 'No se pudo enviar el informe por correo.', true);
+                                return;
+                            }
+
+                            setStatus(data.mensaje || 'Informe enviado correctamente por correo.');
+                        } catch (_) {
+                            setStatus('Error de red al enviar el informe por correo.', true);
+                        } finally {
+                            btn.disabled = false;
+                            btn.classList.remove('opacity-70', 'cursor-not-allowed');
+                        }
+                    });
+                })();
+            </script>
+            {% endif %}
+</body>
+
+</html>

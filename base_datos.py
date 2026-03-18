@@ -1,440 +1,312 @@
 import os
 import psycopg2
+from psycopg2.extras import RealDictCursor
 from datetime import datetime
 
-# Configuración híbrida (Laptop vs Docker)
-DB_CONFIG = {
-    "dbname": os.getenv("DB_NAME", "vulnshield_db"),
-    "user": os.getenv("DB_USER", "jade"),
-    "password": os.getenv("DB_PASSWORD", "123456"),
-    "host": os.getenv("DB_HOST", "localhost"),
-    "port": os.getenv("DB_PORT", "5432")
-}
+
+def _cargar_env_local():
+    """Carga .env local si existe (sin requerir python-dotenv)."""
+    env_path = os.path.join(os.path.dirname(__file__), ".env")
+    if not os.path.exists(env_path):
+        return
+
+    try:
+        with open(env_path, "r", encoding="utf-8") as f:
+            for raw_line in f:
+                line = raw_line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, value = line.split("=", 1)
+                key = key.strip()
+                value = value.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = value
+    except Exception as e:
+        print(f"Aviso: no se pudo cargar .env: {e}")
+
+
+def _obtener_db_config():
+    return {
+        "dbname": os.getenv("DB_NAME", "vulnshield_db"),
+        "user": os.getenv("DB_USER", "jade"),
+        "password": os.getenv("DB_PASSWORD", "123456"),
+        "host": os.getenv("DB_HOST", "localhost"),
+        "port": os.getenv("DB_PORT", "5432"),
+    }
+
+
+_cargar_env_local()
 
 
 def conectar():
-    """Establece conexión con la base de datos"""
+    """Establece conexion con la base de datos."""
+    db_config = _obtener_db_config()
     try:
-        return psycopg2.connect(**DB_CONFIG)
+        return psycopg2.connect(**db_config)
     except Exception as e:
-        print(f"❌ Error de base de datos (Host: {DB_CONFIG.get('host')}): {e}")
+        print(
+            "Error de base de datos "
+            f"(Host: {db_config.get('host')}, Puerto: {db_config.get('port')}, Usuario: {db_config.get('user')}): {e}"
+        )
+        print("Sugerencia: verifica DB_HOST/DB_PORT/DB_USER/DB_PASSWORD en .env")
         return None
 
 
-def verificar_y_reconstruir_hallazgos(cursor):
-    """
-    Verifica si la tabla hallazgos tiene la estructura correcta
-    Si no, la reconstruye conservando los datos
-    """
-    # Verificar si la tabla existe
-    cursor.execute("""
-        SELECT EXISTS (
-            SELECT FROM information_schema.tables 
-            WHERE table_schema = 'public' 
-            AND table_name = 'hallazgos'
-        )
-    """)
-    tabla_existe = cursor.fetchone()[0]
-    
-    if not tabla_existe:
-        print("🆕 Tabla hallazgos no existe. Se creará desde cero.")
-        return False
-    
-    # Verificar columnas actuales
-    cursor.execute("""
-        SELECT column_name 
-        FROM information_schema.columns 
-        WHERE table_name = 'hallazgos'
-    """)
-    columnas_actuales = [col[0] for col in cursor.fetchall()]
-    
-    # Columnas que debería tener la versión 4NF
-    columnas_correctas = ['id', 'analisis_id', 'tipo_vulnerabilidad_id', 
-                          'url_especifica', 'parametro', 'payload', 'fecha_deteccion']
-    
-    # Verificar si tiene la estructura vieja (sin analisis_id)
-    if 'analisis_id' not in columnas_actuales:
-        print("⚠️ Detectada tabla hallazgos con estructura antigua. Reconstruyendo...")
-        
-        # Guardar datos existentes
-        cursor.execute("SELECT COUNT(*) FROM hallazgos")
-        total_registros = cursor.fetchone()[0]
-        print(f"📦 Respaldando {total_registros} registros existentes...")
-        
-        # Crear tabla temporal con los datos
-        cursor.execute("""
-            CREATE TEMPORARY TABLE hallazgos_backup AS 
-            SELECT * FROM hallazgos
-        """)
-        
-        # Determinar qué columnas tiene el backup
-        cursor.execute("""
-            SELECT column_name 
-            FROM information_schema.columns 
-            WHERE table_name = 'hallazgos_backup'
-        """)
-        columnas_backup = [col[0] for col in cursor.fetchall()]
-        print(f"📊 Columnas en backup: {', '.join(columnas_backup)}")
-        
-        # Eliminar tabla vieja
-        cursor.execute("DROP TABLE hallazgos CASCADE")
-        
-        # Crear tabla nueva con estructura correcta
-        cursor.execute('''
-            CREATE TABLE hallazgos (
-                id SERIAL PRIMARY KEY,
-                analisis_id INTEGER,
-                tipo_vulnerabilidad_id INTEGER,
-                url_especifica TEXT,
-                parametro TEXT,
-                payload TEXT,
-                fecha_deteccion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        ''')
-        
-        # Restaurar datos desde backup
-        if 'url' in columnas_backup:
-            if 'fecha' in columnas_backup and 'tipo_vulnerabilidad' in columnas_backup:
-                cursor.execute('''
-                    INSERT INTO hallazgos (url_especifica, fecha_deteccion)
-                    SELECT url, fecha FROM hallazgos_backup
-                ''')
-                print(f"✅ Restaurados {cursor.rowcount} registros (url y fecha)")
-            elif 'fecha' in columnas_backup:
-                cursor.execute('''
-                    INSERT INTO hallazgos (url_especifica, fecha_deteccion)
-                    SELECT url, fecha FROM hallazgos_backup
-                ''')
-                print(f"✅ Restaurados {cursor.rowcount} registros (con fecha)")
-            else:
-                cursor.execute('''
-                    INSERT INTO hallazgos (url_especifica, fecha_deteccion)
-                    SELECT url, CURRENT_TIMESTAMP FROM hallazgos_backup
-                ''')
-                print(f"✅ Restaurados {cursor.rowcount} registros (sin fecha)")
-        
-        # Limpiar tabla temporal
-        cursor.execute("DROP TABLE IF EXISTS hallazgos_backup")
-        
-        return True  # Indica que se reconstruyó
-    
-    return False  # No necesitó reconstrucción
+def _normalizar_tipo(tipo):
+    if not tipo:
+        return "Desconocida"
+    if "SQL" in tipo:
+        return "SQL Injection"
+    if "XSS" in tipo:
+        return "XSS"
+    return tipo.split(" - ")[0].strip()
+
+
+def _asegurar_id_admin(cursor):
+    cursor.execute(
+        'SELECT "idUsuario" FROM "Usuario" WHERE username = %s', ("admin",))
+    row = cursor.fetchone()
+    if row:
+        return row[0]
+
+    cursor.execute(
+        '''
+        INSERT INTO "Usuario" (username, correo, password_hash, "inRol")
+        VALUES (%s, %s, %s, %s)
+        RETURNING "idUsuario"
+        ''',
+        (
+            "admin",
+            "admin@vulnshield.com",
+            "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4LhGqgHqSO",
+            True,
+        ),
+    )
+    return cursor.fetchone()[0]
 
 
 def inicializar_db():
-    """Crea todas las tablas en 4NF y datos iniciales"""
+    """Crea solo las tablas solicitadas por el usuario."""
     conexion = conectar()
     if not conexion:
         return
 
     cursor = conexion.cursor()
-    
-    print("🔄 Verificando/Creando tablas en 4NF...")
-    
-    # ============================================
-    # VERIFICAR Y RECONSTRUIR HALLAZGOS SI ES NECESARIO
-    # ============================================
-    reconstruida = verificar_y_reconstruir_hallazgos(cursor)
-    if reconstruida:
-        print("✅ Tabla hallazgos reconstruida correctamente")
-    
-    # ============================================
-    # 1. TABLAS CATÁLOGO (INDEPENDIENTES)
-    # ============================================
-    
-    # Tabla de protocolos
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS protocolos (
-            id SERIAL PRIMARY KEY,
-            nombre VARCHAR(5) UNIQUE NOT NULL,
-            descripcion VARCHAR(50),
-            puerto INTEGER
+    try:
+        print("Verificando y creando esquema solicitado...")
+
+        # Elimina tablas antiguas no deseadas.
+        cursor.execute('DROP TABLE IF EXISTS hallazgos CASCADE')
+        cursor.execute('DROP TABLE IF EXISTS analisis CASCADE')
+        cursor.execute('DROP TABLE IF EXISTS protocolos CASCADE')
+        cursor.execute('DROP TABLE IF EXISTS tipos_vulnerabilidad CASCADE')
+        cursor.execute('DROP TABLE IF EXISTS administradores CASCADE')
+        cursor.execute('DROP TABLE IF EXISTS usuarios CASCADE')
+
+        cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS "Usuario" (
+                "idUsuario" SERIAL PRIMARY KEY,
+                username VARCHAR(50) UNIQUE NOT NULL,
+                correo VARCHAR(100) UNIQUE NOT NULL,
+                password_hash VARCHAR(255) NOT NULL,
+                "inRol" BOOLEAN NOT NULL DEFAULT FALSE
+            )
+            '''
         )
-    ''')
-    
-    # Tabla de tipos de vulnerabilidad (SOLO SQLi y XSS)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS tipos_vulnerabilidad (
-            id SERIAL PRIMARY KEY,
-            nombre_amenaza VARCHAR(50) UNIQUE NOT NULL,
-            nivel_amenaza VARCHAR(20) NOT NULL,
-            color_hex VARCHAR(7) DEFAULT '#FF4444',
-            CHECK (nivel_amenaza IN ('Crítico', 'Alto', 'Medio', 'Bajo'))
+
+        cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS "niveles_severidad" (
+                "id_severidad" SERIAL PRIMARY KEY,
+                "Nombre" VARCHAR(20) UNIQUE NOT NULL,
+                color_hex VARCHAR(7) NOT NULL
+            )
+            '''
         )
-    ''')
-    
-    # Tabla de administradores
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS administradores (
-            id_administrador SERIAL PRIMARY KEY,
-            usuario VARCHAR(50) UNIQUE NOT NULL,
-            contrasena_hash VARCHAR(255) NOT NULL,
-            email VARCHAR(100) UNIQUE,
-            fecha_registro TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            ultimo_acceso TIMESTAMP,
-            activo BOOLEAN DEFAULT TRUE
+
+        cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS "Escaneo" (
+                "idEscaneo" SERIAL PRIMARY KEY,
+                "idUsuario" INTEGER NOT NULL,
+                url_objetivo TEXT NOT NULL,
+                fecha TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                CONSTRAINT fk_escaneo_usuario
+                    FOREIGN KEY ("idUsuario") REFERENCES "Usuario"("idUsuario")
+                    ON DELETE CASCADE
+            )
+            '''
         )
-    ''')
-    
-    # Tabla principal de análisis
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS analisis (
-            id SERIAL PRIMARY KEY,
-            url TEXT NOT NULL,
-            fecha_analisis DATE NOT NULL,
-            hora_analisis TIME NOT NULL,
-            protocolo_id INTEGER REFERENCES protocolos(id),
-            administrador_id INTEGER REFERENCES administradores(id_administrador),
-            tiempo_ejecucion FLOAT,
-            estado VARCHAR(20) DEFAULT 'completado'
+
+        cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS "catalogo_Vulnerabilidad" (
+                "idvulnerabilidad" SERIAL PRIMARY KEY,
+                "idseveridad" INTEGER NOT NULL,
+                "Nombre" VARCHAR(80) UNIQUE NOT NULL,
+                "Descripcion" TEXT,
+                "Recomendacion" TEXT,
+                CONSTRAINT fk_catalogo_severidad
+                    FOREIGN KEY ("idseveridad") REFERENCES "niveles_severidad"("id_severidad")
+            )
+            '''
         )
-    ''')
-    
-    # Si hallazgos no se reconstruyó, asegurar que tenga la estructura correcta
-    if not reconstruida:
-        # Agregar columnas faltantes si es necesario
-        cursor.execute('''
-            DO $$
-            BEGIN
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name='hallazgos' AND column_name='analisis_id') THEN
-                    ALTER TABLE hallazgos ADD COLUMN analisis_id INTEGER;
-                END IF;
-                
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name='hallazgos' AND column_name='tipo_vulnerabilidad_id') THEN
-                    ALTER TABLE hallazgos ADD COLUMN tipo_vulnerabilidad_id INTEGER;
-                END IF;
-                
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name='hallazgos' AND column_name='url_especifica') THEN
-                    ALTER TABLE hallazgos ADD COLUMN url_especifica TEXT;
-                END IF;
-                
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name='hallazgos' AND column_name='parametro') THEN
-                    ALTER TABLE hallazgos ADD COLUMN parametro TEXT;
-                END IF;
-                
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name='hallazgos' AND column_name='payload') THEN
-                    ALTER TABLE hallazgos ADD COLUMN payload TEXT;
-                END IF;
-                
-                IF EXISTS (SELECT 1 FROM information_schema.columns 
-                          WHERE table_name='hallazgos' AND column_name='fecha') 
-                   AND NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                                  WHERE table_name='hallazgos' AND column_name='fecha_deteccion') THEN
-                    ALTER TABLE hallazgos RENAME COLUMN fecha TO fecha_deteccion;
-                END IF;
-                
-                IF NOT EXISTS (SELECT 1 FROM information_schema.columns 
-                              WHERE table_name='hallazgos' AND column_name='fecha_deteccion') THEN
-                    ALTER TABLE hallazgos ADD COLUMN fecha_deteccion TIMESTAMP DEFAULT CURRENT_TIMESTAMP;
-                END IF;
-            END $$;
-        ''')
-    
-    # ============================================
-    # AGREGAR RELACIONES (FOREIGN KEYS)
-    # ============================================
-    
-    cursor.execute('''
-        DO $$
-        BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_constraint 
-                WHERE conname = 'hallazgos_analisis_id_fkey'
-            ) THEN
-                ALTER TABLE hallazgos 
-                ADD CONSTRAINT hallazgos_analisis_id_fkey 
-                FOREIGN KEY (analisis_id) REFERENCES analisis(id) ON DELETE CASCADE;
-            END IF;
-        END $$;
-    ''')
-    
-    cursor.execute('''
-        DO $$
-        BEGIN
-            IF NOT EXISTS (
-                SELECT 1 FROM pg_constraint 
-                WHERE conname = 'hallazgos_tipo_vulnerabilidad_id_fkey'
-            ) THEN
-                ALTER TABLE hallazgos 
-                ADD CONSTRAINT hallazgos_tipo_vulnerabilidad_id_fkey 
-                FOREIGN KEY (tipo_vulnerabilidad_id) REFERENCES tipos_vulnerabilidad(id);
-            END IF;
-        END $$;
-    ''')
-    
-    # ============================================
-    # ÍNDICES
-    # ============================================
-    
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_hallazgos_analisis ON hallazgos(analisis_id)')
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_hallazgos_fecha ON hallazgos(fecha_deteccion)')
-    cursor.execute('CREATE INDEX IF NOT EXISTS idx_analisis_fecha ON analisis(fecha_analisis)')
-    
-    # ============================================
-    # DATOS INICIALES (CATÁLOGOS)
-    # ============================================
-    
-    # Insertar protocolos
-    cursor.execute('''
-        INSERT INTO protocolos (nombre, descripcion, puerto) VALUES
-        ('HTTP', 'Protocolo no seguro', 80),
-        ('HTTPS', 'Protocolo seguro con SSL/TLS', 443)
-        ON CONFLICT (nombre) DO NOTHING
-    ''')
-    
-    # Insertar tipos de vulnerabilidad (SOLO SQLi y XSS)
-    vulnerabilidades = [
-        ('SQL Injection', 'Crítico', '#FF4444'),
-        ('XSS', 'Alto', '#FF8800')
-    ]
-    
-    for nombre, nivel, color in vulnerabilidades:
-        cursor.execute('''
-            INSERT INTO tipos_vulnerabilidad (nombre_amenaza, nivel_amenaza, color_hex) 
-            VALUES (%s, %s, %s) ON CONFLICT (nombre_amenaza) DO NOTHING
-        ''', (nombre, nivel, color))
-    
-    # Insertar administrador por defecto (contraseña: admin123)
-    cursor.execute('''
-        INSERT INTO administradores (usuario, contrasena_hash, email) 
-        VALUES (%s, %s, %s) 
-        ON CONFLICT (usuario) DO NOTHING
-    ''', ('admin', '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4LhGqgHqSO', 'admin@vulnshield.com'))
-    
-    # ============================================
-    # MIGRAR DATOS EXISTENTES A LA NUEVA ESTRUCTURA
-    # ============================================
-    
-    # Crear análisis para URLs existentes (si no existen)
-    cursor.execute('''
-        INSERT INTO analisis (url, fecha_analisis, hora_analisis, administrador_id)
-        SELECT DISTINCT 
-            h.url_especifica,
-            CURRENT_DATE,
-            CURRENT_TIME,
-            1
-        FROM hallazgos h
-        WHERE h.url_especifica IS NOT NULL
-        AND NOT EXISTS (SELECT 1 FROM analisis a WHERE a.url = h.url_especifica)
-        ON CONFLICT DO NOTHING
-    ''')
-    
-    # Actualizar analisis_id en hallazgos
-    cursor.execute('''
-        UPDATE hallazgos h
-        SET analisis_id = a.id
-        FROM analisis a
-        WHERE h.url_especifica = a.url AND h.analisis_id IS NULL
-    ''')
-    
-    # ============================================
-    # NOTA: Ya no intentamos migrar tipo_vulnerabilidad
-    # porque la columna ya no existe
-    # Los nuevos escaneos ya guardarán el ID correctamente
-    # ============================================
-    
-    conexion.commit()
-    
-    # ============================================
-    # VERIFICACIÓN FINAL
-    # ============================================
-    
-    cursor.execute("""
-        SELECT column_name, data_type 
-        FROM information_schema.columns 
-        WHERE table_name = 'hallazgos'
-        ORDER BY ordinal_position
-    """)
-    
-    print("\n✅ ESTRUCTURA FINAL DE HALLAZGOS:")
-    columnas = []
-    for col in cursor.fetchall():
-        columnas.append(col[0])
-        print(f"   • {col[0]}: {col[1]}")
-    
-    cursor.execute("SELECT COUNT(*) FROM hallazgos")
-    total = cursor.fetchone()[0]
-    print(f"\n📊 Total registros en hallazgos: {total}")
-    print(f"📋 Columnas: {', '.join(columnas)}")
-    
-    cursor.close()
-    conexion.close()
-    print("\n✅ Base de datos inicializada correctamente en 4NF")
+
+        cursor.execute(
+            '''
+            CREATE TABLE IF NOT EXISTS "hallazgo" (
+                "idHallazgo" SERIAL PRIMARY KEY,
+                "idEscaneo" INTEGER NOT NULL,
+                "idVulnerabilidad" INTEGER NOT NULL,
+                parametro TEXT,
+                payload TEXT,
+                CONSTRAINT fk_hallazgo_escaneo
+                    FOREIGN KEY ("idEscaneo") REFERENCES "Escaneo"("idEscaneo")
+                    ON DELETE CASCADE,
+                CONSTRAINT fk_hallazgo_vulnerabilidad
+                    FOREIGN KEY ("idVulnerabilidad") REFERENCES "catalogo_Vulnerabilidad"("idvulnerabilidad")
+            )
+            '''
+        )
+
+        cursor.execute(
+            'CREATE INDEX IF NOT EXISTS idx_escaneo_usuario ON "Escaneo"("idUsuario")')
+        cursor.execute(
+            'CREATE INDEX IF NOT EXISTS idx_escaneo_fecha ON "Escaneo"(fecha)')
+        cursor.execute(
+            'CREATE INDEX IF NOT EXISTS idx_hallazgo_escaneo ON "hallazgo"("idEscaneo")')
+
+        severidades = [
+            ("Critico", "#FF4444"),
+            ("Alto", "#FF8800"),
+            ("Medio", "#FFCC00"),
+            ("Bajo", "#00AEEF"),
+        ]
+        for nombre, color in severidades:
+            cursor.execute(
+                '''
+                INSERT INTO "niveles_severidad" ("Nombre", color_hex)
+                VALUES (%s, %s)
+                ON CONFLICT ("Nombre") DO NOTHING
+                ''',
+                (nombre, color),
+            )
+
+        admin_id = _asegurar_id_admin(cursor)
+
+        catalogo_inicial = [
+            (
+                "SQL Injection",
+                "Critico",
+                "Inyeccion SQL detectada",
+                "Usar consultas parametrizadas y validar entradas",
+            ),
+            (
+                "XSS",
+                "Alto",
+                "Cross-Site Scripting detectado",
+                "Escapar salida HTML y sanitizar datos de entrada",
+            ),
+        ]
+        for nombre, nivel_nombre, descripcion, recomendacion in catalogo_inicial:
+            cursor.execute(
+                'SELECT "id_severidad" FROM "niveles_severidad" WHERE "Nombre" = %s',
+                (nivel_nombre,),
+            )
+            sev_id = cursor.fetchone()[0]
+            cursor.execute(
+                '''
+                INSERT INTO "catalogo_Vulnerabilidad"
+                ("idseveridad", "Nombre", "Descripcion", "Recomendacion")
+                VALUES (%s, %s, %s, %s)
+                ON CONFLICT ("Nombre") DO NOTHING
+                ''',
+                (sev_id, nombre, descripcion, recomendacion),
+            )
+
+        conexion.commit()
+        print(f"Base de datos inicializada. Usuario admin id: {admin_id}")
+    except Exception as e:
+        conexion.rollback()
+        print(f"Error inicializando esquema: {e}")
+    finally:
+        cursor.close()
+        conexion.close()
 
 
 def guardar_analisis_completo(url, protocolo, administrador_id, hallazgos_list, tiempo_ejecucion=0):
-    """
-    Guarda un análisis completo con todos sus hallazgos
-    """
+    """Guarda un escaneo y sus hallazgos en el nuevo esquema."""
     conexion = conectar()
     if not conexion:
         return None
-    
+
     cursor = conexion.cursor()
-    
+
     try:
-        ahora = datetime.now()
-        
-        # 1. Obtener ID del protocolo
-        cursor.execute('SELECT id FROM protocolos WHERE nombre = %s', (protocolo,))
-        resultado = cursor.fetchone()
-        if not resultado:
-            cursor.execute('INSERT INTO protocolos (nombre) VALUES (%s) RETURNING id', (protocolo,))
-            protocolo_id = cursor.fetchone()[0]
-        else:
-            protocolo_id = resultado[0]
-        
-        # 2. Insertar en analisis
-        cursor.execute('''
-            INSERT INTO analisis 
-            (url, fecha_analisis, hora_analisis, protocolo_id, administrador_id, tiempo_ejecucion)
-            VALUES (%s, %s, %s, %s, %s, %s)
-            RETURNING id
-        ''', (
-            url,
-            ahora.date(),
-            ahora.time(),
-            protocolo_id,
-            administrador_id,
-            tiempo_ejecucion
-        ))
-        
-        analisis_id = cursor.fetchone()[0]
-        
-        # 3. Guardar cada hallazgo
+        cursor.execute(
+            'SELECT "idUsuario" FROM "Usuario" WHERE "idUsuario" = %s', (administrador_id,))
+        existe_usuario = cursor.fetchone()
+        if not existe_usuario:
+            administrador_id = _asegurar_id_admin(cursor)
+
+        cursor.execute(
+            '''
+            INSERT INTO "Escaneo" ("idUsuario", url_objetivo)
+            VALUES (%s, %s)
+            RETURNING "idEscaneo"
+            ''',
+            (administrador_id, url),
+        )
+        escaneo_id = cursor.fetchone()[0]
+
         for hallazgo in hallazgos_list:
-            # Obtener ID del tipo de vulnerabilidad
-            cursor.execute('SELECT id FROM tipos_vulnerabilidad WHERE nombre_amenaza = %s', (hallazgo['tipo'],))
-            resultado = cursor.fetchone()
-            
-            if resultado:
-                vuln_id = resultado[0]
-                
-                # Insertar hallazgo
-                cursor.execute('''
-                    INSERT INTO hallazgos 
-                    (analisis_id, tipo_vulnerabilidad_id, url_especifica, parametro, payload)
-                    VALUES (%s, %s, %s, %s, %s)
-                ''', (
-                    analisis_id,
+            tipo = _normalizar_tipo(hallazgo.get('tipo', ''))
+            cursor.execute(
+                'SELECT "idvulnerabilidad" FROM "catalogo_Vulnerabilidad" WHERE "Nombre" = %s',
+                (tipo,),
+            )
+            row = cursor.fetchone()
+
+            if not row:
+                cursor.execute(
+                    'SELECT "id_severidad" FROM "niveles_severidad" WHERE "Nombre" = %s', ("Medio",))
+                sev = cursor.fetchone()
+                sev_id = sev[0] if sev else 3
+                cursor.execute(
+                    '''
+                    INSERT INTO "catalogo_Vulnerabilidad"
+                    ("idseveridad", "Nombre", "Descripcion", "Recomendacion")
+                    VALUES (%s, %s, %s, %s)
+                    RETURNING "idvulnerabilidad"
+                    ''',
+                    (sev_id, tipo, "Detectado por escaneo",
+                     "Revisar y mitigar la vulnerabilidad"),
+                )
+                vuln_id = cursor.fetchone()[0]
+            else:
+                vuln_id = row[0]
+
+            cursor.execute(
+                '''
+                INSERT INTO "hallazgo" ("idEscaneo", "idVulnerabilidad", parametro, payload)
+                VALUES (%s, %s, %s, %s)
+                ''',
+                (
+                    escaneo_id,
                     vuln_id,
-                    hallazgo.get('url_especifica', url),
                     hallazgo.get('parametro', ''),
-                    hallazgo.get('payload', '')
-                ))
-        
+                    hallazgo.get('payload', ''),
+                ),
+            )
+
         conexion.commit()
-        print(f"✅ Análisis #{analisis_id} guardado con {len(hallazgos_list)} hallazgos")
-        return analisis_id
-        
+        print(
+            f"Escaneo #{escaneo_id} guardado con {len(hallazgos_list)} hallazgos")
+        return escaneo_id
     except Exception as e:
         conexion.rollback()
-        print(f"❌ Error guardando análisis: {e}")
+        print(f"Error guardando escaneo: {e}")
         return None
     finally:
         cursor.close()
@@ -442,152 +314,420 @@ def guardar_analisis_completo(url, protocolo, administrador_id, hallazgos_list, 
 
 
 def guardar_hallazgo(url, tipo):
-    """
-    Función de compatibilidad con el código existente
-    """
-    protocolo = 'HTTPS' if url.startswith('https') else 'HTTP'
-    
-    # Limpiar el tipo
-    if 'SQL' in tipo:
-        tipo_limpio = 'SQL Injection'
-    elif 'XSS' in tipo:
-        tipo_limpio = 'XSS'
-    else:
-        tipo_limpio = tipo.split(' - ')[0] if ' - ' in tipo else tipo
-    
+    """Compatibilidad con el flujo actual de escaneo."""
     hallazgos = [{
-        'tipo': tipo_limpio,
-        'url_especifica': url,
+        'tipo': _normalizar_tipo(tipo),
         'parametro': '',
         'payload': ''
     }]
-    
+
     return guardar_analisis_completo(
         url=url,
-        protocolo=protocolo,
-        administrador_id=1,  # Admin por defecto
+        protocolo='HTTP',
+        administrador_id=1,
         hallazgos_list=hallazgos,
         tiempo_ejecucion=0
     )
 
 
-def obtener_datos_dashboard():
-    """Obtiene todos los datos necesarios para el dashboard admin"""
+def listar_administradores():
     conexion = conectar()
     if not conexion:
         return None
-    
+
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            '''
+            SELECT
+                "idUsuario" AS id,
+                username AS usuario,
+                correo AS email,
+                "inRol" AS inrol
+            FROM "Usuario"
+            WHERE "inRol" = TRUE
+            ORDER BY "idUsuario" ASC
+            '''
+        )
+        return [dict(row) for row in cursor.fetchall()]
+    except Exception as e:
+        print(f"Error listando administradores: {e}")
+        return None
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def crear_administrador(usuario, contrasena_hash, email, es_admin=False):
+    conexion = conectar()
+    if not conexion:
+        return {'ok': False, 'error': 'Sin conexion a base de datos'}
+
+    cursor = conexion.cursor()
+    try:
+        cursor.execute(
+            '''
+            INSERT INTO "Usuario" (username, correo, password_hash, "inRol")
+            VALUES (%s, %s, %s, %s)
+            RETURNING "idUsuario"
+            ''',
+            (usuario, email or f"{usuario}@local", contrasena_hash, es_admin),
+        )
+        nuevo_id = cursor.fetchone()[0]
+        conexion.commit()
+        return {'ok': True, 'id': nuevo_id}
+    except Exception as e:
+        conexion.rollback()
+        return {'ok': False, 'error': str(e)}
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def eliminar_administrador(admin_id, admin_principal='admin'):
+    conexion = conectar()
+    if not conexion:
+        return {'ok': False, 'error': 'Sin conexion a base de datos'}
+
+    cursor = conexion.cursor()
+    try:
+        cursor.execute(
+            'SELECT username FROM "Usuario" WHERE "idUsuario" = %s AND "inRol" = TRUE',
+            (admin_id,),
+        )
+        row = cursor.fetchone()
+        if not row:
+            return {'ok': False, 'error': 'Administrador no encontrado'}
+
+        if row[0].strip().lower() == admin_principal.strip().lower():
+            return {'ok': False, 'error': 'No se puede eliminar el administrador principal'}
+
+        cursor.execute(
+            'DELETE FROM "Usuario" WHERE "idUsuario" = %s', (admin_id,))
+        conexion.commit()
+        return {'ok': True}
+    except Exception as e:
+        conexion.rollback()
+        return {'ok': False, 'error': str(e)}
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def obtener_administrador_por_usuario(usuario):
+    conexion = conectar()
+    if not conexion:
+        return None
+
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            '''
+            SELECT
+                "idUsuario" AS id,
+                username AS usuario,
+                password_hash AS contrasena_hash,
+                "inRol" AS activo
+            FROM "Usuario"
+            WHERE username = %s AND "inRol" = TRUE
+            ''',
+            (usuario,),
+        )
+        row = cursor.fetchone()
+        return dict(row) if row else None
+    except Exception as e:
+        print(f"Error obteniendo administrador: {e}")
+        return None
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def actualizar_ultimo_acceso(admin_id):
+    """Compatibilidad: la tabla Usuario no tiene columna ultimo_acceso."""
+    return True
+
+
+def obtener_total_hallazgos_bd():
+    """Devuelve el total acumulado de vulnerabilidades registradas en BD."""
+    conexion = conectar()
+    if not conexion:
+        return 0
+
+    cursor = conexion.cursor()
+    try:
+        cursor.execute('SELECT COUNT(*) FROM "hallazgo"')
+        row = cursor.fetchone()
+        return int(row[0]) if row else 0
+    except Exception as e:
+        print(f"Error obteniendo total de hallazgos: {e}")
+        return 0
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def obtener_metricas_resumen():
+    """Obtiene metricas resumidas para las tarjetas principales del dashboard."""
+    conexion = conectar()
+    metricas_base = {
+        'total_hallazgos': 0,
+        'vulnerabilidades_criticas': 0,
+        'total_escaneos': 0,
+        'escaneos_hoy': 0,
+    }
+
+    if not conexion:
+        return metricas_base
+
+    cursor = conexion.cursor()
+    try:
+        cursor.execute('SELECT COUNT(*) FROM "hallazgo"')
+        row = cursor.fetchone()
+        metricas_base['total_hallazgos'] = int(row[0]) if row else 0
+
+        cursor.execute('''
+            SELECT COUNT(*)
+            FROM "hallazgo" h
+            JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
+            JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+            WHERE ns."Nombre" IN ('Critico', 'Alto')
+        ''')
+        row = cursor.fetchone()
+        metricas_base['vulnerabilidades_criticas'] = int(row[0]) if row else 0
+
+        cursor.execute('''
+            SELECT
+                COUNT(*) as total,
+                COUNT(CASE WHEN fecha::date = CURRENT_DATE THEN 1 END) as hoy
+            FROM "Escaneo"
+        ''')
+        row = cursor.fetchone()
+        if row:
+            metricas_base['total_escaneos'] = int(row[0])
+            metricas_base['escaneos_hoy'] = int(row[1])
+
+        return metricas_base
+    except Exception as e:
+        print(f"Error obteniendo metricas resumen: {e}")
+        return metricas_base
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def obtener_correo_usuario(usuario_id):
+    """Devuelve el correo del usuario para envio de informes."""
+    conexion = conectar()
+    if not conexion:
+        return None
+
+    cursor = conexion.cursor()
+    try:
+        cursor.execute(
+            'SELECT correo FROM "Usuario" WHERE "idUsuario" = %s',
+            (usuario_id,),
+        )
+        row = cursor.fetchone()
+        return str(row[0]).strip() if row and row[0] else None
+    except Exception as e:
+        print(f"Error obteniendo correo de usuario: {e}")
+        return None
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def obtener_reporte_escaneo(usuario_id, escaneo_id=None):
+    """Obtiene datos consolidados del escaneo para generar reporte PDF."""
+    conexion = conectar()
+    if not conexion:
+        return None
+
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+
+    try:
+        if escaneo_id:
+            cursor.execute(
+                '''
+                SELECT e."idEscaneo", e.url_objetivo, e.fecha, u.username, u.correo
+                FROM "Escaneo" e
+                JOIN "Usuario" u ON e."idUsuario" = u."idUsuario"
+                WHERE e."idEscaneo" = %s AND e."idUsuario" = %s
+                LIMIT 1
+                ''',
+                (escaneo_id, usuario_id),
+            )
+        else:
+            cursor.execute(
+                '''
+                SELECT e."idEscaneo", e.url_objetivo, e.fecha, u.username, u.correo
+                FROM "Escaneo" e
+                JOIN "Usuario" u ON e."idUsuario" = u."idUsuario"
+                WHERE e."idUsuario" = %s
+                ORDER BY e.fecha DESC
+                LIMIT 1
+                ''',
+                (usuario_id,),
+            )
+
+        encabezado = cursor.fetchone()
+        if not encabezado:
+            return None
+
+        cursor.execute(
+            '''
+            SELECT
+                cv."Nombre" AS tipo,
+                ns."Nombre" AS severidad,
+                cv."Descripcion" AS descripcion,
+                cv."Recomendacion" AS recomendacion,
+                COALESCE(h.parametro, '') AS parametro,
+                COALESCE(h.payload, '') AS payload
+            FROM "hallazgo" h
+            JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
+            JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+            WHERE h."idEscaneo" = %s
+            ORDER BY h."idHallazgo" ASC
+            ''',
+            (encabezado['idEscaneo'],),
+        )
+        hallazgos = [dict(row) for row in cursor.fetchall()]
+
+        return {
+            'escaneo_id': int(encabezado['idEscaneo']),
+            'usuario': str(encabezado['username']),
+            'correo': str(encabezado['correo']),
+            'url': str(encabezado['url_objetivo']),
+            'fecha': encabezado['fecha'],
+            'protocolo': 'HTTPS' if str(encabezado['url_objetivo']).startswith('https://') else 'HTTP',
+            'total_hallazgos': len(hallazgos),
+            'hallazgos': hallazgos,
+        }
+    except Exception as e:
+        print(f"Error obteniendo reporte de escaneo: {e}")
+        return None
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def obtener_datos_dashboard():
+    """Obtiene datos del dashboard con el nuevo esquema."""
+    conexion = conectar()
+    if not conexion:
+        return None
+
     cursor = conexion.cursor()
     datos = {}
-    
+
     try:
-        # 1. Total de administradores
         cursor.execute('''
             SELECT 
                 COUNT(*) as total,
-                COUNT(CASE WHEN fecha_registro > NOW() - INTERVAL '30 days' THEN 1 END) as nuevos
-            FROM administradores
+                COUNT(CASE WHEN "inRol" = TRUE THEN 1 END) as nuevos
+            FROM "Usuario"
         ''')
         row = cursor.fetchone()
         datos['usuarios'] = {'total': row[0], 'nuevos': row[1]}
-        
-        # 2. Vulnerabilidades críticas (Críticas + Altas)
+
         cursor.execute('''
             SELECT COUNT(*)
-            FROM hallazgos h
-            JOIN tipos_vulnerabilidad tv ON h.tipo_vulnerabilidad_id = tv.id
-            WHERE tv.nivel_amenaza IN ('Crítico', 'Alto')
+            FROM "hallazgo" h
+            JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
+            JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+            WHERE ns."Nombre" IN ('Critico', 'Alto')
         ''')
         datos['vulnerabilidades_criticas'] = cursor.fetchone()[0]
-        
-        # 3. Total links escaneados
+
         cursor.execute('''
             SELECT 
                 COUNT(*) as total,
-                COUNT(CASE WHEN fecha_analisis = CURRENT_DATE THEN 1 END) as hoy
-            FROM analisis
+                COUNT(CASE WHEN fecha::date = CURRENT_DATE THEN 1 END) as hoy
+            FROM "Escaneo"
         ''')
         row = cursor.fetchone()
         datos['links_escaneados'] = {'total': row[0], 'hoy': row[1]}
-        
-        # 4. Frecuencia por tipo (para gráfica de pastel)
+
         cursor.execute('''
             SELECT 
-                tv.nombre_amenaza,
-                COUNT(h.id) as frecuencia
-            FROM tipos_vulnerabilidad tv
-            LEFT JOIN hallazgos h ON tv.id = h.tipo_vulnerabilidad_id
-            WHERE tv.nombre_amenaza IN ('SQL Injection', 'XSS')
-            GROUP BY tv.id, tv.nombre_amenaza
+                cv."Nombre",
+                COUNT(h."idHallazgo") as frecuencia
+            FROM "catalogo_Vulnerabilidad" cv
+            LEFT JOIN "hallazgo" h ON cv."idvulnerabilidad" = h."idVulnerabilidad"
+            GROUP BY cv."idvulnerabilidad", cv."Nombre"
             ORDER BY frecuencia DESC
         ''')
         datos['frecuencia_tipos'] = cursor.fetchall()
-        
-        # 5. Escaneos recientes
+
         cursor.execute('''
             SELECT 
-                a.url,
-                a.fecha_analisis,
-                a.hora_analisis,
-                MAX(tv.nivel_amenaza) as max_severidad,
-                COUNT(h.id) as total_hallazgos
-            FROM analisis a
-            LEFT JOIN hallazgos h ON a.id = h.analisis_id
-            LEFT JOIN tipos_vulnerabilidad tv ON h.tipo_vulnerabilidad_id = tv.id
-            GROUP BY a.id, a.url, a.fecha_analisis, a.hora_analisis
-            ORDER BY a.fecha_analisis DESC, a.hora_analisis DESC
+                e.url_objetivo,
+                e.fecha,
+                COALESCE(MAX(CASE ns."Nombre"
+                    WHEN 'Critico' THEN 4
+                    WHEN 'Alto' THEN 3
+                    WHEN 'Medio' THEN 2
+                    WHEN 'Bajo' THEN 1
+                    ELSE 0
+                END), 0) AS severidad_rank,
+                COUNT(h."idHallazgo") as total_hallazgos
+            FROM "Escaneo" e
+            LEFT JOIN "hallazgo" h ON e."idEscaneo" = h."idEscaneo"
+            LEFT JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
+            LEFT JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+            GROUP BY e."idEscaneo", e.url_objetivo, e.fecha
+            ORDER BY e.fecha DESC
             LIMIT 20
         ''')
-        
+
         escaneos_recientes = []
         for row in cursor.fetchall():
-            severidad = row[3] if row[3] else 'Sin riesgo'
-            
-            # Mapear severidad a clase CSS
-            if severidad == 'Crítico':
+            if row[2] == 4:
                 clase = 'bg-red-500/20 text-red-400'
-                texto = 'Crítico'
-            elif severidad == 'Alto':
+                texto = 'Critico'
+            elif row[2] == 3:
                 clase = 'bg-orange-500/20 text-orange-400'
                 texto = 'Alto'
-            elif severidad == 'Medio':
+            elif row[2] == 2:
                 clase = 'bg-yellow-500/20 text-yellow-300'
                 texto = 'Medio'
-            elif severidad == 'Bajo':
+            elif row[2] == 1:
                 clase = 'bg-sky-500/20 text-sky-300'
                 texto = 'Bajo'
             else:
                 clase = 'bg-emerald-500/20 text-emerald-400'
                 texto = 'Sin riesgo'
-            
+
             escaneos_recientes.append({
                 'url': row[0],
                 'fecha': row[1].strftime('%d/%m/%Y'),
-                'hora': row[2].strftime('%H:%M'),
+                'hora': row[1].strftime('%H:%M'),
                 'severidad_clase': clase,
                 'severidad_texto': texto,
-                'total': row[4]
+                'total': row[3]
             })
-        
+
         datos['escaneos_recientes'] = escaneos_recientes
-        
+
     except Exception as e:
-        print(f"❌ Error obteniendo datos del dashboard: {e}")
+        print(f"Error obteniendo datos del dashboard: {e}")
         return None
     finally:
         cursor.close()
         conexion.close()
-    
+
     return datos
 
 
 if __name__ == '__main__':
     inicializar_db()
-    print("\n📊 Probando conexión y datos...")
+    print("\nProbando conexion y datos...")
     datos = obtener_datos_dashboard()
     if datos:
-        print(f"✅ Dashboard data cargado: {len(datos)} categorías")
-        print(f"   • Usuarios: {datos['usuarios']['total']}")
-        print(f"   • Vulnerabilidades críticas: {datos['vulnerabilidades_criticas']}")
-        print(f"   • Total escaneos: {datos['links_escaneados']['total']}")
-        print(f"   • Escaneos hoy: {datos['links_escaneados']['hoy']}")
+        print(f"Dashboard data cargado: {len(datos)} categorias")
+        print(f"Usuarios: {datos['usuarios']['total']}")
+        print(
+            f"Vulnerabilidades criticas: {datos['vulnerabilidades_criticas']}")
+        print(f"Total escaneos: {datos['links_escaneados']['total']}")
+        print(f"Escaneos hoy: {datos['links_escaneados']['hoy']}")
