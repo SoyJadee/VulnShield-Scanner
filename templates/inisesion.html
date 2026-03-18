@@ -6,10 +6,113 @@
     <title>Acceso Dual - VulnShield</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
+        :root {
+            --c1: #022f40;
+            --c2: #38aecc;
+            --c3: #0090c1;
+            --c4: #183446;
+            --c5: #046e8f;
+            --white: #ffffff;
+        }
+
         #form-toggle:checked ~ .form-container { transform: translateX(-50%); }
         #form-toggle:checked ~ .switch-wrapper .switch-label .switch-ball { transform: translateX(100%); }
         #form-toggle:checked ~ .switch-wrapper .switch-label .text-login { opacity: 0.5; }
         #form-toggle:checked ~ .switch-wrapper .switch-label .text-register { opacity: 1; }
+
+        body {
+            background: var(--c1);
+            color: var(--c2);
+        }
+
+        .panel {
+            background: var(--c4);
+            border: 1px solid var(--c3);
+            box-shadow: 0 24px 48px var(--c1);
+        }
+
+        .switch-label {
+            background: var(--c1);
+            border: 1px solid var(--c3);
+        }
+
+        .switch-label button {
+            color: var(--white);
+        }
+
+        .switch-ball {
+            background: var(--c2);
+        }
+
+        .field-label {
+            color: var(--c2);
+        }
+
+        .field-input {
+            background: var(--white);
+            border: 1px solid var(--c3);
+            color: var(--c1);
+        }
+
+        .field-input::placeholder {
+            color: var(--c1);
+            opacity: 0.7;
+        }
+
+        .field-input:focus {
+            border-color: var(--c5);
+            outline: none;
+        }
+
+        .action-btn {
+            background: var(--c3);
+            color: var(--white);
+            border: 1px solid var(--c3);
+            font-weight: 700;
+            transition: all 0.2s ease;
+        }
+
+        .action-btn:hover {
+            background: var(--c2);
+            color: var(--c1);
+            border-color: var(--c2);
+        }
+
+        .toggle-btn {
+            color: var(--c5);
+        }
+
+        .toggle-btn:hover,
+        .toggle-btn.is-active {
+            color: var(--c1);
+        }
+
+        .help-popup {
+            background: var(--c2);
+            border: 1px solid var(--c3);
+            color: var(--c1);
+        }
+
+        .req-valid {
+            color: var(--c1);
+            font-weight: 700;
+        }
+
+        .req-invalid {
+            color: var(--c4);
+        }
+
+        .error-text {
+            color: var(--c2);
+            background: var(--c4);
+            border: 1px solid var(--c5);
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.5rem;
+        }
+
+        .input-error {
+            border-color: var(--c5) !important;
+        }
         
         .form-container {
             width: 200%;
@@ -23,14 +126,14 @@
         }
     </style>
 </head>
-<body class="bg-[#020617] min-h-screen flex items-center justify-center p-4 font-sans text-white">
+<body class="min-h-screen flex items-center justify-center p-4 font-sans">
 
-    <div class="w-full max-w-md bg-[#0f172a] rounded-2xl shadow-2xl overflow-hidden border border-slate-800">
+    <div class="panel w-full max-w-md rounded-2xl overflow-hidden">
         <input type="checkbox" id="form-toggle" class="hidden">
         
         <div class="switch-wrapper flex flex-col items-center pt-8 pb-4">
-            <div class="switch-label flex items-center bg-slate-950 w-72 h-14 rounded-full relative p-1 border border-slate-700">
-                <div class="switch-ball absolute w-[140px] h-12 bg-blue-600 rounded-full transition-transform duration-300 ease-in-out"></div>
+            <div class="switch-label flex items-center w-72 h-14 rounded-full relative p-1">
+                <div class="switch-ball absolute w-[140px] h-12 rounded-full transition-transform duration-300 ease-in-out"></div>
                 <button id="btn-entrar" type="button" class="text-login z-10 w-1/2 text-center font-semibold transition-opacity duration-300">Inicio de Sesión</button>
                 <button id="btn-registro" type="button" class="text-register z-10 w-1/2 text-center font-semibold opacity-50 transition-opacity duration-300">Registro</button>
             </div>
@@ -39,24 +142,28 @@
         <div class="form-container flex">
             <div class="w-1/2 p-8 pt-4">
                 <h2 class="text-2xl font-bold mb-6 text-center">Bienvenido</h2>
-                <form class="space-y-4">
+                <form id="login-form" class="space-y-4">
                     <div>
-                        <label class="block text-sm text-slate-400 mb-1">Usuario</label>
-                        <input type="text" maxlength="20" class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="tu_usuario">
+                        <label class="field-label block text-sm mb-1">Usuario</label>
+                        <input id="login-usuario" type="text" maxlength="20" class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="tu_usuario">
                     </div>
                     <div>
-                        <label class="block text-sm text-slate-400 mb-1">Contraseña</label>
+                        <label class="field-label block text-sm mb-1">Contraseña</label>
                         <div class="relative">
-                            <input id="login-password" type="password" maxlength="20" class="w-full px-4 py-3 pr-12 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="••••••••">
-                            <button id="toggle-login-password" type="button" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-sky-300 transition-colors">
+                            <input id="login-password" type="password" maxlength="20" class="field-input w-full px-4 py-3 pr-12 rounded-lg transition-colors" placeholder="••••••••">
+                            <button id="toggle-login-password" type="button" class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </button>
                         </div>
+                        <p id="login-password-error" class="error-text mt-2 text-[10px] hidden">
+                            La contraseña no es válida.
+                        </p>
+                        <p id="login-error" class="error-text mt-2 text-[10px] hidden"></p>
                     </div>
-                    <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-all">Iniciar Sesión</button>
+                    <button type="submit" class="action-btn w-full py-3 rounded-lg transition-all">Iniciar Sesión</button>
                 </form>
             </div>
 
@@ -64,48 +171,48 @@
                 <h2 class="text-2xl font-bold mb-6 text-center">Crea tu cuenta</h2>
                 <form id="register-form" class="space-y-4">
                     <div>
-                        <label class="block text-sm text-slate-400 mb-1">Nombre Completo</label>
-                        <input type="text" maxlength="20" class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="Mari">
+                        <label class="field-label block text-sm mb-1">Nombre</label>
+                        <input id="reg-usuario" type="text" maxlength="20" class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="Mari">
                     </div>
                     
                     <div>
-                        <label class="block text-sm text-slate-400 mb-1">Correo</label>
-                        <input id="reg-email" type="email" maxlength="20" class="w-full px-4 py-3 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="correo@ejemplo.com">
-                        <p id="reg-email-error" class="mt-2 text-[10px] text-red-400 hidden">
+                        <label class="field-label block text-sm mb-1">Correo</label>
+                        <input id="reg-email" type="email" maxlength="50" class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="correo@ejemplo.com">
+                        <p id="reg-email-error" class="error-text mt-2 text-[10px] hidden">
                             Ingrese un formato de correo válido.
                         </p>
                     </div>
                     
                     <div class="relative">
-                        <label class="block text-sm text-slate-400 mb-1">Contraseña</label>
+                        <label class="field-label block text-sm mb-1">Contraseña</label>
                         
-                        <div id="password-popup" class="absolute bottom-full left-0 mb-2 w-full p-3 bg-blue-900 border border-blue-400 rounded-lg text-xs shadow-xl opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 z-50">
-                            <p class="font-bold mb-1 text-blue-200">Requisitos (Máx. 20 carac.):</p>
+                        <div id="password-popup" class="help-popup absolute bottom-full left-0 mb-2 w-full p-3 rounded-lg text-xs opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 z-50">
+                            <p class="font-bold mb-1">Requisitos (Máx. 20 carac.):</p>
                             <ul class="space-y-1">
-                                <li id="req-length" class="text-red-400">• Entre 8 y 20 caracteres</li>
-                                <li id="req-special" class="text-red-400">• Un carácter especial</li>
-                                <li id="req-case" class="text-red-400">• Mayúscula y minúscula</li>
+                                <li id="req-length" class="req-invalid">• Entre 8 y 20 caracteres</li>
+                                <li id="req-special" class="req-invalid">• Un carácter especial</li>
+                                <li id="req-case" class="req-invalid">• Mayúscula y minúscula</li>
                             </ul>
-                            <div class="absolute top-full left-6 -mt-1 border-8 border-transparent border-t-blue-900"></div>
                         </div>
 
                         <div class="relative">
-                            <input id="reg-password" type="password" maxlength="20" class="w-full px-4 py-3 pr-12 rounded-lg bg-slate-900 border border-slate-700 focus:border-blue-500 focus:outline-none transition-colors" placeholder="••••••••">
-                            <button id="toggle-register-password" type="button" class="absolute inset-y-0 right-0 px-3 flex items-center text-slate-400 hover:text-sky-300 transition-colors">
+                            <input id="reg-password" type="password" maxlength="20" class="field-input w-full px-4 py-3 pr-12 rounded-lg transition-colors" placeholder="••••••••">
+                            <button id="toggle-register-password" type="button" class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                                     <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                             </button>
                         </div>
-                        <p id="reg-password-error" class="mt-2 text-[10px] text-red-400 hidden">
+                        <p id="reg-password-error" class="error-text mt-2 text-[10px] hidden">
                             La contraseña no es válida.
                         </p>
                     </div>
 
-                    <button type="submit" class="w-full py-3 bg-blue-600 hover:bg-blue-500 rounded-lg font-bold transition-all shadow-lg shadow-blue-900/20">
+                    <button type="submit" class="action-btn w-full py-3 rounded-lg transition-all">
                         Registrarse
                     </button>
+                    <p id="register-feedback" class="error-text mt-2 text-[10px] hidden"></p>
                 </form>
             </div>
         </div>
@@ -115,8 +222,13 @@
         const formToggle = document.getElementById('form-toggle');
         const btnEntrar = document.getElementById('btn-entrar');
         const btnRegistro = document.getElementById('btn-registro');
+        const loginForm = document.getElementById('login-form');
+        const loginUsuario = document.getElementById('login-usuario');
         const loginPassword = document.getElementById('login-password');
+        const loginPasswordError = document.getElementById('login-password-error');
+        const loginError = document.getElementById('login-error');
         const toggleLoginPassword = document.getElementById('toggle-login-password');
+        const regUsuario = document.getElementById('reg-usuario');
         const regPassword = document.getElementById('reg-password');
         const regEmail = document.getElementById('reg-email');
         const regEmailError = document.getElementById('reg-email-error');
@@ -127,6 +239,7 @@
         const reqCase = document.getElementById('req-case');
         const registerForm = document.getElementById('register-form');
         const regPasswordError = document.getElementById('reg-password-error');
+        const registerFeedback = document.getElementById('register-feedback');
 
         function validateEmail(email) {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
@@ -142,11 +255,10 @@
         function setErrorStyle(element, errorElement, isError) {
             if (isError) {
                 errorElement.classList.remove('hidden');
-                element.classList.add('border-red-500');
+                element.classList.add('input-error');
             } else {
                 errorElement.classList.add('hidden');
-                element.classList.remove('border-red-500');
-                element.classList.add('border-slate-700');
+                element.classList.remove('input-error');
             }
         }
 
@@ -154,7 +266,7 @@
             buttonElement.addEventListener('click', function() {
                 const isHidden = inputElement.type === 'password';
                 inputElement.type = isHidden ? 'text' : 'password';
-                buttonElement.classList.toggle('text-sky-300', isHidden);
+                buttonElement.classList.toggle('is-active', isHidden);
             });
         }
 
@@ -172,21 +284,113 @@
 
         regPassword.addEventListener('input', function() {
             const v = validateRegisterPassword(this.value);
-            v.hasLength ? reqLength.classList.replace('text-red-400', 'text-emerald-400') : reqLength.classList.replace('text-emerald-400', 'text-red-400');
-            v.hasSpecial ? reqSpecial.classList.replace('text-red-400', 'text-emerald-400') : reqSpecial.classList.replace('text-emerald-400', 'text-red-400');
-            v.hasCase ? reqCase.classList.replace('text-red-400', 'text-emerald-400') : reqCase.classList.replace('text-emerald-400', 'text-red-400');
+            reqLength.classList.toggle('req-valid', v.hasLength);
+            reqLength.classList.toggle('req-invalid', !v.hasLength);
+            reqSpecial.classList.toggle('req-valid', v.hasSpecial);
+            reqSpecial.classList.toggle('req-invalid', !v.hasSpecial);
+            reqCase.classList.toggle('req-valid', v.hasCase);
+            reqCase.classList.toggle('req-invalid', !v.hasCase);
             setErrorStyle(this, regPasswordError, this.value.length > 0 && !v.isValid);
         });
 
         registerForm.addEventListener('submit', function(e) {
+            e.preventDefault();
             const isEmailValid = validateEmail(regEmail.value);
             const isPassValid = validateRegisterPassword(regPassword.value).isValid;
+            const isUserValid = (regUsuario.value || '').trim().length >= 3;
             if (!isEmailValid || !isPassValid) {
-                e.preventDefault();
                 setErrorStyle(regEmail, regEmailError, !isEmailValid);
                 setErrorStyle(regPassword, regPasswordError, !isPassValid);
                 if (!isEmailValid) regEmail.focus(); else regPassword.focus();
+                return;
             }
+
+            if (!isUserValid) {
+                registerFeedback.textContent = 'El usuario debe tener al menos 3 caracteres.';
+                registerFeedback.classList.remove('hidden');
+                regUsuario.classList.add('input-error');
+                regUsuario.focus();
+                return;
+            }
+
+            regUsuario.classList.remove('input-error');
+            registerFeedback.classList.add('hidden');
+
+            fetch('/api/auth/registro', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    usuario: regUsuario.value.trim(),
+                    email: regEmail.value.trim(),
+                    contrasena: regPassword.value
+                })
+            })
+            .then(async (response) => {
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || 'No se pudo registrar');
+                }
+                registerFeedback.textContent = 'Registro exitoso. Ahora puedes iniciar sesión.';
+                registerFeedback.classList.remove('hidden');
+                registerForm.reset();
+                reqLength.classList.remove('req-valid'); reqLength.classList.add('req-invalid');
+                reqSpecial.classList.remove('req-valid'); reqSpecial.classList.add('req-invalid');
+                reqCase.classList.remove('req-valid'); reqCase.classList.add('req-invalid');
+                formToggle.checked = false;
+            })
+            .catch((error) => {
+                registerFeedback.textContent = error.message;
+                registerFeedback.classList.remove('hidden');
+            });
+        });
+
+        loginForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const usuario = (loginUsuario.value || '').trim();
+            const contrasena = loginPassword.value || '';
+            const passValid = validateRegisterPassword(contrasena).isValid;
+
+            setErrorStyle(loginPassword, loginPasswordError, contrasena.length > 0 && !passValid);
+            if (loginError) {
+                loginError.classList.add('hidden');
+                loginError.textContent = '';
+            }
+
+            if (!usuario || !contrasena) {
+                if (loginError) {
+                    loginError.textContent = 'Usuario y contraseña son obligatorios.';
+                    loginError.classList.remove('hidden');
+                }
+                return;
+            }
+
+            if (!passValid) {
+                if (loginError) {
+                    loginError.textContent = 'La contraseña debe cumplir con la política de seguridad.';
+                    loginError.classList.remove('hidden');
+                }
+                return;
+            }
+
+            fetch('/api/auth/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, contrasena })
+            })
+            .then(async (response) => {
+                const data = await response.json();
+                if (!response.ok || data.error) {
+                    throw new Error(data.error || 'Credenciales inválidas');
+                }
+                window.location.href = data.redirect || '/admin';
+            })
+            .catch((error) => {
+                if (loginError) {
+                    loginError.textContent = error.message;
+                    loginError.classList.remove('hidden');
+                }
+            });
         });
     </script>
 </body>

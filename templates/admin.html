@@ -5,19 +5,65 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VulnShield Admin - Estadísticas</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
     <style>
-        body { background-color: #020617; }
+        :root {
+            --c1: #022f40;
+            --c2: #38aecc;
+            --c3: #0090c1;
+            --c4: #183446;
+            --c5: #046e8f;
+            --white: #ffffff;
+        }
+
+        body {
+            background-color: var(--c1);
+            color: var(--white);
+        }
+
+        .bg-\[\#0f172a\] { background-color: var(--c4) !important; }
+        .bg-slate-900\/70 { background-color: var(--c1) !important; }
+        .bg-sky-500\/10,
+        .bg-emerald-500\/20,
+        .bg-red-500\/20 { background-color: var(--c5) !important; }
+
+        .border-slate-800,
+        .border-sky-500\/20,
+        .hover\:border-sky-500\/50:hover { border-color: var(--c3) !important; }
+
+        .text-white,
+        .text-slate-400,
+        .text-slate-500,
+        .text-sky-300,
+        .text-sky-400,
+        .text-sky-200,
+        .text-red-400,
+        .text-red-500,
+        .text-emerald-400 { color: var(--white) !important; }
+
+        .bg-sky-500,
+        .group-hover\:bg-sky-400:hover,
+        .hover\:bg-slate-800:hover,
+        .hover\:bg-sky-500\/20:hover { background-color: var(--c3) !important; }
+
+        .shadow-sky-900\/30 { box-shadow: 0 16px 40px var(--c1) !important; }
+
+        .severidad-badge {
+            background: var(--c5);
+            color: var(--white);
+            border: 1px solid var(--c3);
+        }
+
         .chart-container { position: relative; height: 300px; width: 100%; }
 
         .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: #0f172a; }
+        .custom-scrollbar::-webkit-scrollbar-track { background: var(--c4); }
         .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #38bdf8;
+            background: var(--c2);
             border-radius: 9999px;
-            border: 2px solid #0f172a;
+            border: 2px solid var(--c4);
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #0ea5e9; }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--c3); }
 
         .user-menu {
             opacity: 0;
@@ -32,6 +78,40 @@
             visibility: visible;
             transform: translateY(0);
             pointer-events: auto;
+        }
+
+        .help-popup {
+            background: var(--c2);
+            border: 1px solid var(--c3);
+            color: var(--c1);
+        }
+
+        .req-valid {
+            color: var(--c1);
+            font-weight: 700;
+        }
+
+        .req-invalid {
+            color: var(--c4);
+        }
+
+        .input-error {
+            border-color: #ef4444 !important;
+        }
+
+        .toggle-btn {
+            color: var(--c2);
+        }
+
+        .toggle-btn:hover,
+        .toggle-btn.is-active {
+            color: var(--white);
+        }
+
+        .show-popup {
+            opacity: 1 !important;
+            transform: translateY(0) !important;
+            pointer-events: auto !important;
         }
     </style>
 </head>
@@ -71,10 +151,6 @@
             <div>
                 <h1 class="text-2xl font-bold">Panel de Control General</h1>
                 <p class="text-slate-400 text-sm">Resumen de actividad y vulnerabilidades detectadas.</p>
-            </div>
-            <div class="text-right hidden sm:block">
-                <p class="text-xs text-slate-500 uppercase font-bold tracking-widest">Estado del Sistema</p>
-                <p class="text-emerald-400 font-bold">● Protegido</p>
             </div>
         </div>
 
@@ -130,11 +206,54 @@
             </div>
         </div>
 
+        <div class="bg-[#0f172a] p-6 rounded-2xl border border-slate-800">
+            <div class="flex items-center justify-between mb-4">
+                <h2 class="text-lg font-bold">Gestión de Administradores</h2>
+                <span class="text-xs text-slate-400"></span>
+            </div>
+
+            <form id="admin-create-form" class="grid grid-cols-1 md:grid-cols-4 gap-3 mb-4">
+                <input id="nuevo-usuario" type="text" placeholder="Usuario" class="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 focus:outline-none focus:border-sky-400" required>
+                <input id="nuevo-email" type="email" maxlength="50" placeholder="Correo (opcional)" class="w-full px-3 py-2 rounded bg-slate-900 border border-slate-700 focus:outline-none focus:border-sky-400">
+                <div class="relative">
+                    <div id="admin-password-popup" class="help-popup absolute bottom-full left-0 mb-2 w-full p-3 rounded-lg text-xs opacity-0 -translate-y-2 pointer-events-none transition-all duration-300 z-50">
+                        <p class="font-bold mb-1">Requisitos (Máx. 20 carac.):</p>
+                        <ul class="space-y-1">
+                            <li id="admin-req-length" class="req-invalid">• Entre 8 y 20 caracteres</li>
+                            <li id="admin-req-special" class="req-invalid">• Un carácter especial</li>
+                            <li id="admin-req-case" class="req-invalid">• Mayúscula y minúscula</li>
+                        </ul>
+                    </div>
+                    <input id="nueva-contrasena" type="password" maxlength="20" placeholder="Contraseña" class="w-full px-3 py-2 pr-10 rounded bg-slate-900 border border-slate-700 focus:outline-none focus:border-sky-400" required>
+                    <button id="toggle-admin-password" type="button" class="toggle-btn absolute inset-y-0 right-0 px-3 flex items-center transition-colors" aria-label="Mostrar u ocultar contraseña">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+                <button type="submit" class="px-4 py-2 rounded bg-sky-500 hover:bg-sky-400 font-semibold text-slate-900">Agregar</button>
+            </form>
+
+            <p id="admin-feedback" class="text-sm mb-3 text-slate-300"></p>
+
+            <div id="lista-administradores" class="space-y-2">
+                <div class="text-slate-400 text-sm">Cargando administradores...</div>
+            </div>
+        </div>
+
     </main>
 
     <script>
         // Variables globales para los gráficos
         let threatChart = null;
+        const adminPrincipal = 'admin';
+        const adminPasswordInput = document.getElementById('nueva-contrasena');
+        const adminPasswordPopup = document.getElementById('admin-password-popup');
+        const adminReqLength = document.getElementById('admin-req-length');
+        const adminReqSpecial = document.getElementById('admin-req-special');
+        const adminReqCase = document.getElementById('admin-req-case');
+        const toggleAdminPassword = document.getElementById('toggle-admin-password');
 
         // Función para cargar datos desde la API
         async function cargarDatosDashboard() {
@@ -168,50 +287,174 @@
             }
         }
 
+        function mostrarFeedbackAdmin(mensaje, esError = false) {
+            const feedback = document.getElementById('admin-feedback');
+            if (!feedback) return;
+            feedback.textContent = mensaje;
+            feedback.className = `text-sm mb-3 ${esError ? 'text-red-400' : 'text-emerald-400'}`;
+        }
+
+        function validarContrasenaAdmin(valor) {
+            const hasLength = valor.length >= 8 && valor.length <= 20;
+            const hasSpecial = /[!@#$%^&*(),.?":{}|<>]/.test(valor);
+            const hasCase = /[a-z]/.test(valor) && /[A-Z]/.test(valor);
+            return { hasLength, hasSpecial, hasCase, isValid: hasLength && hasSpecial && hasCase };
+        }
+
+        function actualizarReglasContrasenaAdmin(valor) {
+            const v = validarContrasenaAdmin(valor);
+            adminReqLength.classList.toggle('req-valid', v.hasLength);
+            adminReqLength.classList.toggle('req-invalid', !v.hasLength);
+            adminReqSpecial.classList.toggle('req-valid', v.hasSpecial);
+            adminReqSpecial.classList.toggle('req-invalid', !v.hasSpecial);
+            adminReqCase.classList.toggle('req-valid', v.hasCase);
+            adminReqCase.classList.toggle('req-invalid', !v.hasCase);
+            adminPasswordInput.classList.toggle('input-error', valor.length > 0 && !v.isValid);
+            return v;
+        }
+
+        async function cargarAdministradores() {
+            const contenedor = document.getElementById('lista-administradores');
+            if (!contenedor) return;
+
+            try {
+                const response = await fetch(`/api/administradores?solicitante=${adminPrincipal}`);
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    contenedor.innerHTML = `<div class="text-red-400 text-sm">${data.error || 'No se pudo cargar la lista'}</div>`;
+                    return;
+                }
+
+                const admins = data.administradores || [];
+                if (admins.length === 0) {
+                    contenedor.innerHTML = '<div class="text-slate-400 text-sm">No hay administradores registrados.</div>';
+                    return;
+                }
+
+                let html = '';
+                admins.forEach((admin) => {
+                    const esPrincipal = admin.usuario && admin.usuario.toLowerCase() === adminPrincipal;
+                    html += `
+                        <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-2 bg-slate-900 border border-slate-700 rounded-lg p-3">
+                            <div>
+                                <p class="font-semibold text-white">${admin.usuario}${esPrincipal ? ' (principal)' : ''}</p>
+                                <p class="text-xs text-slate-400">${admin.email || 'Sin correo'} • Registro: ${admin.fecha_registro || '-'}</p>
+                            </div>
+                            <button
+                                type="button"
+                                class="px-3 py-1 rounded text-sm font-semibold ${esPrincipal ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-red-600 hover:bg-red-500 text-white'}"
+                                ${esPrincipal ? 'disabled' : `onclick="eliminarAdministrador(${admin.id})"`}
+                            >
+                                Eliminar
+                            </button>
+                        </div>
+                    `;
+                });
+
+                contenedor.innerHTML = html;
+            } catch (error) {
+                contenedor.innerHTML = '<div class="text-red-400 text-sm">Error cargando administradores.</div>';
+            }
+        }
+
+        async function eliminarAdministrador(adminId) {
+            const confirmar = window.confirm('¿Seguro que deseas eliminar este administrador?');
+            if (!confirmar) return;
+
+            try {
+                const response = await fetch(`/api/administradores/${adminId}?solicitante=${adminPrincipal}`, {
+                    method: 'DELETE'
+                });
+                const data = await response.json();
+
+                if (!response.ok || data.error) {
+                    mostrarFeedbackAdmin(data.error || 'No se pudo eliminar el administrador', true);
+                    return;
+                }
+
+                mostrarFeedbackAdmin('Administrador eliminado correctamente.');
+                cargarAdministradores();
+            } catch (error) {
+                mostrarFeedbackAdmin('Error eliminando administrador.', true);
+            }
+        }
+
         function actualizarGrafica(frecuenciaTipos) {
-            const ctx = document.getElementById('threatTypePieChart').getContext('2d');
+            const chartElement = document.getElementById('threatTypePieChart');
+            if (!chartElement) return;
             
             // Destruir gráfica anterior si existe
             if (threatChart) {
                 threatChart.destroy();
+                threatChart = null;
             }
             
             // Preparar datos para la gráfica
             const tipos = frecuenciaTipos.map(item => item[0]);
             const valores = frecuenciaTipos.map(item => parseInt(item[1]) || 0);
-            
-            // Colores para SQLi y XSS
-            const colores = {
-                'SQL Injection': '#ef4444',
-                'XSS': '#f97316'
-            };
-            
-            const backgroundColor = tipos.map(tipo => colores[tipo] || '#94a3b8');
-            
-            threatChart = new Chart(ctx, {
-                type: 'doughnut',
-                data: {
-                    labels: tipos,
-                    datasets: [{
-                        data: valores,
-                        backgroundColor: backgroundColor,
-                        borderWidth: 0,
-                        hoverOffset: 10
-                    }]
+
+            function colorPorAlerta(etiqueta) {
+                const texto = (etiqueta || '').toLowerCase();
+
+                // Rojo: vulnerabilidades criticas o altas
+                if (texto.includes('crit') || texto.includes('alto') || texto.includes('sql')) {
+                    return '#dc2626';
+                }
+
+                // Naranja: advertencias o xss de bajo impacto
+                if (texto.includes('advert') || texto.includes('warning') || texto.includes('xss') || texto.includes('bajo') || texto.includes('medio')) {
+                    return '#f97316';
+                }
+
+                // Verde: seguro o sin vulnerabilidades
+                if (texto.includes('seguro') || texto.includes('ninguna') || texto.includes('sin vulner')) {
+                    return '#16a34a';
+                }
+
+                // Valor por defecto para etiquetas no clasificadas
+                return '#965d34';
+            }
+
+            const backgroundColor = tipos.map(colorPorAlerta);
+
+            const options = {
+                chart: {
+                    type: 'donut',
+                    height: 300,
+                    background: 'transparent'
                 },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            labels: {
-                                color: 'white',
-                                font: { family: 'sans-serif', size: 12 }
-                            }
-                        }
+                series: valores,
+                labels: tipos,
+                colors: backgroundColor,
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        colors: '#ffffff'
+                    }
+                },
+                stroke: {
+                    width: 0
+                },
+                dataLabels: {
+                    enabled: true,
+                    style: {
+                        colors: ['#ffffff']
+                    }
+                },
+                tooltip: {
+                    theme: 'dark'
+                },
+                noData: {
+                    text: 'Sin datos',
+                    style: {
+                        color: '#ffffff'
                     }
                 }
-            });
+            };
+
+            threatChart = new ApexCharts(chartElement, options);
+            threatChart.render();
         }
 
         function actualizarEscaneosRecientes(escaneos) {
@@ -224,13 +467,28 @@
             
             let html = '';
             escaneos.forEach(scan => {
+                const severidad = (scan.severidad_texto || '').toLowerCase();
+                let badgeClass = 'bg-green-600 text-white';
+
+                if (severidad.includes('cr') || severidad.includes('alto')) {
+                    badgeClass = 'bg-red-600 text-white';
+                } else if (
+                    severidad.includes('medio') ||
+                    severidad.includes('bajo') ||
+                    severidad.includes('xss') ||
+                    severidad.includes('advert') ||
+                    severidad.includes('warning')
+                ) {
+                    badgeClass = 'bg-orange-500 text-white';
+                }
+
                 html += `
                     <div class="bg-slate-900/70 border border-slate-800 rounded-xl p-4">
                         <p class="text-sm font-semibold text-sky-300 break-all">${scan.url}</p>
                         <div class="mt-2 flex flex-wrap items-center gap-3 text-xs text-slate-400">
                             <span>Fecha: ${scan.fecha}</span>
                             <span>Hora: ${scan.hora}</span>
-                            <span class="px-2 py-1 rounded-full ${scan.severidad_clase} font-bold">${scan.severidad_texto}</span>
+                            <span class="px-2 py-1 rounded-full font-bold ${badgeClass}">${scan.severidad_texto}</span>
                             <span class="text-slate-500">(${scan.total} vuln)</span>
                         </div>
                     </div>
@@ -243,9 +501,74 @@
         // Cargar datos al iniciar
         document.addEventListener('DOMContentLoaded', () => {
             cargarDatosDashboard();
+            cargarAdministradores();
             // Recargar cada 30 segundos
             setInterval(cargarDatosDashboard, 30000);
+
+            if (adminPasswordInput && adminPasswordPopup) {
+                adminPasswordInput.addEventListener('focus', () => adminPasswordPopup.classList.add('show-popup'));
+                adminPasswordInput.addEventListener('blur', () => adminPasswordPopup.classList.remove('show-popup'));
+                adminPasswordInput.addEventListener('input', function () {
+                    actualizarReglasContrasenaAdmin(this.value);
+                });
+            }
+
+            if (toggleAdminPassword && adminPasswordInput) {
+                toggleAdminPassword.addEventListener('click', function () {
+                    const isHidden = adminPasswordInput.type === 'password';
+                    adminPasswordInput.type = isHidden ? 'text' : 'password';
+                    toggleAdminPassword.classList.toggle('is-active', isHidden);
+                });
+            }
         });
+
+        const adminCreateForm = document.getElementById('admin-create-form');
+        if (adminCreateForm) {
+            adminCreateForm.addEventListener('submit', async function (event) {
+                event.preventDefault();
+
+                const usuario = document.getElementById('nuevo-usuario').value.trim();
+                const email = document.getElementById('nuevo-email').value.trim();
+                const contrasena = document.getElementById('nueva-contrasena').value;
+
+                if (!usuario || !contrasena) {
+                    mostrarFeedbackAdmin('Usuario y contraseña son obligatorios.', true);
+                    return;
+                }
+
+                const validacion = actualizarReglasContrasenaAdmin(contrasena);
+                if (!validacion.isValid) {
+                    mostrarFeedbackAdmin('La contraseña debe tener entre 8 y 20 caracteres, incluir mayúscula, minúscula y un carácter especial.', true);
+                    adminPasswordInput.focus();
+                    return;
+                }
+
+                try {
+                    const response = await fetch('/api/administradores', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            solicitante: adminPrincipal,
+                            usuario,
+                            email,
+                            contrasena
+                        })
+                    });
+                    const data = await response.json();
+
+                    if (!response.ok || data.error) {
+                        mostrarFeedbackAdmin(data.error || 'No se pudo crear el administrador', true);
+                        return;
+                    }
+
+                    adminCreateForm.reset();
+                    mostrarFeedbackAdmin('Administrador creado correctamente.');
+                    cargarAdministradores();
+                } catch (error) {
+                    mostrarFeedbackAdmin('Error creando administrador.', true);
+                }
+            });
+        }
 
         // Menu de usuario (sin cambios)
         const userMenuTrigger = document.getElementById('user-menu-trigger');
