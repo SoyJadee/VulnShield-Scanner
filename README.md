@@ -103,6 +103,17 @@ En Linux/Ubuntu (Jade's choice):
 Bash
 python3 -m venv venv
 source venv/bin/activate
+
+### 2.1. Configuración opcional de correo (SMTP)
+Para que la aplicación pueda enviar correos de confirmación de registro, define estas variables de entorno antes de iniciar el servidor:
+
+- `SMTP_HOST` (ej: smtp.gmail.com)
+- `SMTP_PORT` (ej: 587)
+- `SMTP_FROM` (dirección remitente)
+- `SMTP_USER` (usuario / email de autenticación)
+- `SMTP_PASSWORD` (contraseña o clave de aplicación)
+- `SMTP_USE_TLS` (true/false, por defecto true)
+
 3. Instalación de Dependencias
 Con el entorno virtual activado (venv), instala los requerimientos:
 
@@ -125,3 +136,7 @@ Ejecuta: python victima.py
 En el escáner web, ingresa la URL local: http://127.0.0.1:5001/buscar?q=1
 
 Prueba externa sugerida: http://demo.testfire.net/login.jsp (Laboratorio oficial de IBM).
+
+USUARIO ADMINISTRADOR: admin@vulnshield.com / admin123
+
+correo juancruiz08@gmail.com / Abc123..

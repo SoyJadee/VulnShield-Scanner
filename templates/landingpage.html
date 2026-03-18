@@ -1,0 +1,384 @@
+﻿<!doctype html>
+<html lang="es" class="h-full">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VulnShield Scanner</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <script src="https://cdn.jsdelivr.net/npm/lucide@0.263.0/dist/umd/lucide.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    html, body { height: 100%; margin: 0; }
+    * { box-sizing: border-box; }
+
+    .font-heading { font-family: 'Space Grotesk', sans-serif; }
+    .font-body { font-family: 'Space Grotesk', sans-serif; }
+
+    @keyframes float-up {
+      from { opacity: 0; transform: translateY(40px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 20px rgba(56,174,204,0.15); }
+      50% { box-shadow: 0 0 40px rgba(56,174,204,0.3); }
+    }
+    @keyframes scan-line {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(200%); }
+    }
+    @keyframes grid-fade {
+      0%, 100% { opacity: 0.03; }
+      50% { opacity: 0.08; }
+    }
+
+    .anim-float { animation: float-up 0.7s ease-out both; }
+    .anim-float-d1 { animation-delay: 0.1s; }
+    .anim-float-d2 { animation-delay: 0.2s; }
+    .anim-float-d3 { animation-delay: 0.3s; }
+    .anim-float-d4 { animation-delay: 0.4s; }
+    .anim-float-d5 { animation-delay: 0.5s; }
+    .anim-float-d6 { animation-delay: 0.6s; }
+    .anim-float-d7 { animation-delay: 0.7s; }
+
+    .card-glow:hover { animation: pulse-glow 2s ease-in-out infinite; }
+
+    .grid-bg {
+      background-image:
+        linear-gradient(rgba(56,174,204,0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(56,174,204,0.05) 1px, transparent 1px);
+      background-size: 60px 60px;
+      animation: grid-fade 6s ease-in-out infinite;
+    }
+
+    .scan-effect {
+      position: relative;
+      overflow: hidden;
+    }
+    .scan-effect::after {
+      content: '';
+      position: absolute;
+      top: 0; left: 0;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(56,174,204,0.06), transparent);
+      animation: scan-line 4s linear infinite;
+    }
+
+    .threat-card {
+      transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+    .threat-card:hover {
+      transform: translateY(-6px);
+    }
+
+    .nav-scrolled {
+      backdrop-filter: blur(16px);
+      background: rgba(2,47,64,0.92) !important;
+    }
+  </style>
+  <style>body { box-sizing: border-box; }</style>
+ </head>
+ <body class="h-full font-body overflow-x-hidden overflow-y-auto" style="background-color: #022f40; color: #ffffff;">
+  <div id="app-wrapper" class="w-full min-h-full relative">
+   <!-- Grid background -->
+   <div class="grid-bg fixed inset-0 pointer-events-none" style="z-index:0;"></div>
+   
+   <!-- NAV MODIFICADO -->
+   <nav id="main-nav" class="fixed top-0 left-0 w-full z-40 transition-all duration-300" style="background: transparent;">
+    <div class="max-w-6xl mx-auto px-4 sm:px-6 py-3 sm:py-4 flex items-center justify-between gap-3">
+        <!-- Logo enlaza a landingpage.html -->
+        <a href="/" class="flex items-center gap-2 text-primary min-w-0 hover:opacity-80 transition-opacity">
+            <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M20 13c0 5-3.5 7.5-8 9c-4.5-1.5-8-4-8-9V6l8-3l8 3z"></path>
+                <path d="m9 12l2 2l4-4"></path>
+            </svg>
+            <span class="font-heading font-bold text-sm sm:text-lg tracking-tight truncate" style="color:#38aecc;">VulnShield Scanner</span>
+        </a>
+        
+        <!-- Links del menú -->
+        <div class="hidden md:flex items-center justify-center gap-8 text-sm" style="color: #046e8f;">
+            <a href="#amenazas" class="hover:text-white transition-colors">Amenazas</a>
+            <a href="#funcionalidades" class="hover:text-white transition-colors">Funcionalidades</a>
+        </div>
+        
+        <!-- Botón de login que redirige a inisesion.html -->
+        <a href="/inisesion" class="flex items-center gap-2 px-3 sm:px-5 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-300 hover:scale-105 whitespace-nowrap shrink-0" style="background: #38aecc; color: #022f40;">
+            <i data-lucide="log-in" style="width:16px; height:16px;"></i>
+            <span>Iniciar sesión</span>
+        </a>
+    </div>
+   </nav>
+   
+   <!-- HERO -->
+   <section class="relative pt-28 sm:pt-32 pb-16 sm:pb-20 px-4 sm:px-6" style="z-index:1;">
+    <div class="max-w-4xl mx-auto text-center">
+     <div class="anim-float anim-float-d1 inline-flex items-center gap-2 px-3 sm:px-4 py-1.5 rounded-full text-[11px] sm:text-xs font-semibold mb-6 sm:mb-8" style="background: rgba(56,174,204,0.1); border: 1px solid rgba(56,174,204,0.2); color: #38aecc;"><span class="w-2 h-2 rounded-full" style="background:#38aecc; box-shadow: 0 0 8px #38aecc;"></span> Protección activa 24/7
+     </div>
+     <h1 id="hero-title" class="anim-float anim-float-d2 font-heading font-bold text-3xl sm:text-4xl md:text-6xl leading-tight mb-5 sm:mb-6" style="color: #ffffff;">Empieza a protegerte hoy.<br><span style="color:#38aecc;">Analiza cualquier URL sospechosa de forma gratuita.</span></h1>
+     <p id="hero-subtitle" class="anim-float anim-float-d3 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 sm:mb-10 px-2 sm:px-0" style="color: #046e8f;">Detectamos amenazas ocultas en enlaces sospechosos.</p>
+    <!-- Stats -->
+     <div class="anim-float anim-float-d5 grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 mt-10 sm:mt-16 max-w-lg mx-auto">
+      <div class="text-center">
+       <div class="font-heading font-bold text-2xl" style="color:#38aecc;">
+        2M+
+       </div>
+       <div class="text-xs mt-1" style="color:#046e8f;">
+        URLs analizadas
+       </div>
+      </div>
+      <div class="text-center">
+       <div class="font-heading font-bold text-2xl" style="color:#38aecc;">
+        99.7%
+       </div>
+       <div class="text-xs mt-1" style="color:#046e8f;">
+        Precisión
+       </div>
+      </div>
+      <div class="text-center">
+       <div class="font-heading font-bold text-2xl" style="color:#38aecc;">
+        &lt;2s
+       </div>
+       <div class="text-xs mt-1" style="color:#046e8f;">
+        Tiempo análisis
+       </div>
+      </div>
+     </div>
+    </div>
+   </section>
+   
+   <!-- AMENAZAS -->
+  <section id="amenazas" class="relative py-16 sm:py-20 px-4 sm:px-6" style="z-index:1;">
+    <div class="max-w-6xl mx-auto">
+     <div class="text-center mb-14">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background: rgba(0,144,193,0.1); border: 1px solid rgba(0,144,193,0.2); color: #0090c1;"><i data-lucide="alert-triangle" style="width:14px; height:14px;"></i> ¿Qué detecta VulnShield?
+      </div>
+      <h2 id="threats-title" class="font-heading font-bold text-2xl sm:text-3xl md:text-4xl mb-4" style="color:#ffffff;">Amenazas</h2>
+      <p class="max-w-xl mx-auto px-2 sm:px-0 text-sm sm:text-base" style="color:#046e8f;">Estos son los tipos de hallazgos que el motor actual identifica mediante fuzzing y análisis de respuesta.</p>
+     </div>
+     <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-5"><!-- Threat 1: Phishing -->
+      <div class="threat-card card-glow rounded-2xl p-5 sm:p-6" style="background: rgba(24,52,70,0.95); border: 1px solid rgba(0,144,193,0.4);">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background: rgba(0,144,193,0.1);"><i data-lucide="fish" style="width:24px; height:24px; color:#0090c1;"></i>
+       </div>
+       <h3 class="font-heading font-bold text-lg mb-2" style="color:#ffffff;">SQL Injection en URL</h3>
+       <p class="text-sm leading-relaxed" style="color:#046e8f;">Prueba múltiples payloads SQL en parámetros GET y marca hallazgos cuando detecta firmas de error en la respuesta.</p>
+       <div class="mt-4 flex items-center gap-2 text-xs font-semibold" style="color:#0090c1;"><span class="w-1.5 h-1.5 rounded-full" style="background:#0090c1;"></span> Severidad alta
+       </div>
+      </div><!-- Threat 2: Malware -->
+      <div class="threat-card card-glow rounded-2xl p-5 sm:p-6" style="background: rgba(24,52,70,0.95); border: 1px solid rgba(0,144,193,0.4);">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background: rgba(0,144,193,0.1);"><i data-lucide="bug" style="width:24px; height:24px; color:#0090c1;"></i>
+       </div>
+       <h3 class="font-heading font-bold text-lg mb-2" style="color:#ffffff;">XSS Reflejado en URL</h3>
+       <p class="text-sm leading-relaxed" style="color:#046e8f;">Evalúa payloads XSS y detecta reflejo exacto, patrones de script o funciones JavaScript sospechosas en la respuesta.</p>
+       <div class="mt-4 flex items-center gap-2 text-xs font-semibold" style="color:#0090c1;"><span class="w-1.5 h-1.5 rounded-full" style="background:#0090c1;"></span> Severidad media
+       </div>
+      </div><!-- Threat 3: Ransomware -->
+      <div class="threat-card card-glow rounded-2xl p-5 sm:p-6" style="background: rgba(24,52,70,0.95); border: 1px solid rgba(0,144,193,0.4);">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background: rgba(0,144,193,0.1);"><i data-lucide="lock" style="width:24px; height:24px; color:#0090c1;"></i>
+       </div>
+       <h3 class="font-heading font-bold text-lg mb-2" style="color:#ffffff;">SQLi en Formularios (POST)</h3>
+       <p class="text-sm leading-relaxed" style="color:#046e8f;">Encuentra formularios automáticamente, envía payloads en campos input y valida si aparecen errores de base de datos.</p>
+       <div class="mt-4 flex items-center gap-2 text-xs font-semibold" style="color:#0090c1;"><span class="w-1.5 h-1.5 rounded-full" style="background:#0090c1;"></span> Severidad alta
+       </div>
+      </div><!-- Threat 4: Spyware -->
+      <div class="threat-card card-glow rounded-2xl p-5 sm:p-6" style="background: rgba(24,52,70,0.95); border: 1px solid rgba(0,144,193,0.4);">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background: rgba(0,144,193,0.1);"><i data-lucide="eye" style="width:24px; height:24px; color:#0090c1;"></i>
+       </div>
+       <h3 class="font-heading font-bold text-lg mb-2" style="color:#ffffff;">XSS en Formularios (POST)</h3>
+       <p class="text-sm leading-relaxed" style="color:#046e8f;">Envía payloads XSS en formularios y reporta el hallazgo cuando el payload regresa reflejado en el contenido de respuesta.</p>
+       <div class="mt-4 flex items-center gap-2 text-xs font-semibold" style="color:#0090c1;"><span class="w-1.5 h-1.5 rounded-full" style="background:#0090c1;"></span> Severidad media
+       </div>
+      </div><!-- Threat 5: Drive-by downloads -->
+      <div class="threat-card card-glow rounded-2xl p-5 sm:p-6" style="background: rgba(24,52,70,0.95); border: 1px solid rgba(0,144,193,0.4);">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background: rgba(0,144,193,0.1);"><i data-lucide="download-cloud" style="width:24px; height:24px; color:#0090c1;"></i>
+       </div>
+       <h3 class="font-heading font-bold text-lg mb-2" style="color:#ffffff;">Errores SQL Expuestos</h3>
+      <p class="text-sm leading-relaxed" style="color:#046e8f;">Reconoce mensajes de error de motores como MySQL, PostgreSQL, Oracle, SQLite y ODBC para evidenciar exposición de backend.</p>
+       <div class="mt-4 flex items-center gap-2 text-xs font-semibold" style="color:#0090c1;"><span class="w-1.5 h-1.5 rounded-full" style="background:#0090c1;"></span> Evidencia técnica
+       </div>
+      </div><!-- Threat 6: URL Shortener abuse -->
+      <div class="threat-card card-glow rounded-2xl p-5 sm:p-6" style="background: rgba(24,52,70,0.95); border: 1px solid rgba(0,144,193,0.4);">
+       <div class="w-12 h-12 rounded-xl flex items-center justify-center mb-4" style="background: rgba(56,174,204,0.1);"><i data-lucide="shrink" style="width:24px; height:24px; color:#38aecc;"></i>
+       </div>
+       <h3 class="font-heading font-bold text-lg mb-2" style="color:#ffffff;">Reputación de URL (VirusTotal)</h3>
+       <p class="text-sm leading-relaxed" style="color:#046e8f;">Si existe VIRUSTOTAL_API_KEY, consulta detecciones malicious/suspicious y agrega el resultado al reporte del escaneo.</p>
+       <div class="mt-4 flex items-center gap-2 text-xs font-semibold" style="color:#38aecc;"><span class="w-1.5 h-1.5 rounded-full" style="background:#38aecc;"></span> Integración opcional
+       </div>
+      </div>
+     </div>
+    </div>
+   </section>
+   
+   <!-- FUNCIONALIDADES -->
+  <section id="funcionalidades" class="relative py-16 sm:py-20 px-4 sm:px-6" style="z-index:1;">
+    <div class="max-w-6xl mx-auto">
+     <div class="text-center mb-14">
+      <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold mb-4" style="background: rgba(56,174,204,0.1); border: 1px solid rgba(56,174,204,0.2); color: #38aecc;"><i data-lucide="zap" style="width:14px; height:14px;"></i> ¿Cómo funciona?
+      </div>
+      <h2 id="features-title" class="font-heading font-bold text-2xl sm:text-3xl md:text-4xl mb-4" style="color:#ffffff;">Capacidades del escáner</h2>
+      <p class="max-w-xl mx-auto px-2 sm:px-0 text-sm sm:text-base" style="color:#046e8f;">El flujo actual está enfocado en pruebas DAST de SQLi/XSS y trazabilidad de resultados en dashboard y reportes.</p>
+     </div>
+     <div class="grid md:grid-cols-2 gap-5">
+      <div class="rounded-2xl p-5 sm:p-7 flex gap-4 sm:gap-5 items-start transition-all hover:scale-[1.02]" style="background: rgba(56,174,204,0.04); border: 1px solid rgba(56,174,204,0.1);">
+       <div class="w-11 h-11 rounded-lg flex-shrink-0 flex items-center justify-center" style="background: rgba(56,174,204,0.15);"><i data-lucide="search" style="width:20px; height:20px; color:#38aecc;"></i>
+       </div>
+       <div>
+        <h3 class="font-heading font-bold mb-1" style="color:#ffffff;">Fuzzing con diccionarios de payloads</h3>
+        <p class="text-sm" style="color:#046e8f;">Ejecuta múltiples cargas para SQL Injection y XSS, tanto en URL como en formularios detectados.</p>
+       </div>
+      </div>
+      <div class="rounded-2xl p-5 sm:p-7 flex gap-4 sm:gap-5 items-start transition-all hover:scale-[1.02]" style="background: rgba(56,174,204,0.04); border: 1px solid rgba(56,174,204,0.1);">
+       <div class="w-11 h-11 rounded-lg flex-shrink-0 flex items-center justify-center" style="background: rgba(56,174,204,0.15);"><i data-lucide="database" style="width:20px; height:20px; color:#38aecc;"></i>
+       </div>
+       <div>
+        <h3 class="font-heading font-bold mb-1" style="color:#ffffff;">Análisis GET y POST automatizado</h3>
+        <p class="text-sm" style="color:#046e8f;">Busca etiquetas form, prepara datos falsos por campo y envía solicitudes para validar comportamientos inseguros.</p>
+       </div>
+      </div>
+      <div class="rounded-2xl p-5 sm:p-7 flex gap-4 sm:gap-5 items-start transition-all hover:scale-[1.02]" style="background: rgba(56,174,204,0.04); border: 1px solid rgba(56,174,204,0.1);">
+       <div class="w-11 h-11 rounded-lg flex-shrink-0 flex items-center justify-center" style="background: rgba(56,174,204,0.15);"><i data-lucide="brain" style="width:20px; height:20px; color:#38aecc;"></i>
+       </div>
+       <div>
+        <h3 class="font-heading font-bold mb-1" style="color:#ffffff;">Detección por evidencia en respuesta</h3>
+        <p class="text-sm" style="color:#046e8f;">Clasifica hallazgos por errores SQL, patrones XSS y reflejo de payload, asignando severidades Alta o Media.</p>
+       </div>
+      </div>
+      <div class="rounded-2xl p-5 sm:p-7 flex gap-4 sm:gap-5 items-start transition-all hover:scale-[1.02]" style="background: rgba(56,174,204,0.04); border: 1px solid rgba(56,174,204,0.1);">
+       <div class="w-11 h-11 rounded-lg flex-shrink-0 flex items-center justify-center" style="background: rgba(56,174,204,0.15);"><i data-lucide="clock" style="width:20px; height:20px; color:#38aecc;"></i>
+       </div>
+       <div>
+        <h3 class="font-heading font-bold mb-1" style="color:#ffffff;">Registro y visualización de resultados</h3>
+        <p class="text-sm" style="color:#046e8f;">Guarda hallazgos en base de datos y los muestra en dashboard, historial de escaneos y vista de reporte.</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </section>
+   
+   <!-- FOOTER -->
+  <footer class="relative py-10 px-4 sm:px-6" style="z-index:1; border-top: 1px solid rgba(0,144,193,0.35);">
+    <div class="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+     <div class="flex items-center gap-2"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:#38aecc;">
+       <path d="M20 13c0 5-3.5 7.5-8 9c-4.5-1.5-8-4-8-9V6l8-3l8 3z"></path>
+       <path d="m9 12l2 2l4-4"></path>
+      </svg> <span class="font-heading font-bold text-sm" style="color:#38aecc;">VulnShield Scanner</span>
+     </div>
+     <p class="text-xs" style="color:#046e8f;">© 2026 VulnShield Scanner. Tu seguridad es nuestra prioridad.</p>
+    </div>
+   </footer>
+  </div>
+  
+  <script>
+  // Default config
+  const defaultConfig = {
+    background_color: '#022f40',
+    surface_color: '#183446',
+    text_color: '#ffffff',
+    primary_action_color: '#38aecc',
+    secondary_action_color: '#046e8f',
+    font_family: 'Space Grotesk',
+    font_size: 16,
+    hero_title: 'Analiza cualquier URL antes de hacer clic',
+    hero_subtitle: 'Detectamos amenazas ocultas en enlaces sospechosos. Phishing, malware y fraudes al descubierto en segundos.',
+    threats_title: 'Hallazgos que sí detecta VulnShield',
+    features_title: 'Capacidades reales del escáner',
+    cta_title: 'Navega sin miedo',
+    cta_button_text: 'Comenzar gratis'
+  };
+
+  function applyConfig(config) {
+    const bg = config.background_color || defaultConfig.background_color;
+    const surface = config.surface_color || defaultConfig.surface_color;
+    const text = config.text_color || defaultConfig.text_color;
+    const primary = config.primary_action_color || defaultConfig.primary_action_color;
+    const secondary = config.secondary_action_color || defaultConfig.secondary_action_color;
+    const fontFamily = config.font_family || defaultConfig.font_family;
+    const baseFontStack = 'sans-serif';
+    const fontSize = config.font_size || defaultConfig.font_size;
+
+    // Background
+    document.body.style.backgroundColor = bg;
+    document.body.style.color = text;
+
+    // Font
+    const bodyFont = `${fontFamily}, ${baseFontStack}`;
+    document.body.style.fontFamily = bodyFont;
+    document.querySelectorAll('.font-heading').forEach(el => {
+      el.style.fontFamily = `'Space Grotesk', ${fontFamily}, sans-serif`;
+    });
+
+    // Font sizing
+    document.querySelectorAll('h1').forEach(el => el.style.fontSize = `${fontSize * 2.5}px`);
+    document.querySelectorAll('h2').forEach(el => el.style.fontSize = `${fontSize * 2}px`);
+    document.querySelectorAll('h3').forEach(el => el.style.fontSize = `${fontSize * 1.15}px`);
+    document.querySelectorAll('p').forEach(el => {
+      if (!el.closest('.text-xs') && !el.classList.contains('text-xs')) {
+        el.style.fontSize = `${fontSize}px`;
+      }
+    });
+
+    // Primary action color (buttons, accents)
+    document.querySelectorAll('button').forEach(btn => {
+      if (btn.style.backgroundColor === '#38aecc' || btn.id === 'login-btn' || btn.id === 'cta-button') {
+        btn.style.backgroundColor = primary;
+      }
+    });
+    const ctaBtn = document.getElementById('cta-button');
+    if (ctaBtn) ctaBtn.style.backgroundColor = primary;
+
+    // Text content
+    const heroTitle = config.hero_title || defaultConfig.hero_title;
+    const parts = heroTitle.split('\n');
+    const heroEl = document.getElementById('hero-title');
+    if (heroEl) {
+      if (parts.length > 1) {
+        heroEl.innerHTML = `${parts[0]}<br><span style="color:${primary};">${parts.slice(1).join(' ')}</span>`;
+      } else {
+        heroEl.innerHTML = heroTitle;
+      }
+    }
+
+    const heroSub = document.getElementById('hero-subtitle');
+    if (heroSub) heroSub.textContent = config.hero_subtitle || defaultConfig.hero_subtitle;
+
+    const threatsH = document.getElementById('threats-title');
+    if (threatsH) threatsH.textContent = config.threats_title || defaultConfig.threats_title;
+
+    const featuresH = document.getElementById('features-title');
+    if (featuresH) featuresH.textContent = config.features_title || defaultConfig.features_title;
+
+    const ctaH = document.getElementById('cta-title');
+    if (ctaH) ctaH.textContent = config.cta_title || defaultConfig.cta_title;
+
+    const ctaBtnText = document.getElementById('cta-button');
+    if (ctaBtnText) {
+      const icon = ctaBtnText.querySelector('i');
+      ctaBtnText.innerHTML = '';
+      if (icon) ctaBtnText.appendChild(icon);
+      ctaBtnText.appendChild(document.createTextNode(' ' + (config.cta_button_text || defaultConfig.cta_button_text)));
+    }
+  }
+
+  // Smooth scroll for nav links
+  document.querySelectorAll('a[href^="#"]').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const target = document.querySelector(link.getAttribute('href'));
+      if (target) target.scrollIntoView({ behavior: 'smooth' });
+    });
+  });
+
+  // Nav scroll effect
+  const nav = document.getElementById('main-nav');
+  window.addEventListener('scroll', () => {
+    if (window.scrollY > 50) {
+      nav.classList.add('nav-scrolled');
+    } else {
+      nav.classList.remove('nav-scrolled');
+    }
+  });
+
+  // Init icons
+  lucide.createIcons();
+</script>
+ </body>
+</html>

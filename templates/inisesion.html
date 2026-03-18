@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Dual - VulnShield</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <style>
         :root {
             --c1: #022f40;
@@ -23,6 +24,10 @@
         body {
             background: var(--c1);
             color: var(--c2);
+        }
+
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
         }
 
         .panel {
@@ -129,6 +134,15 @@
 <body class="min-h-screen flex items-center justify-center p-4 font-sans">
 
     <div class="panel w-full max-w-md rounded-2xl overflow-hidden">
+        <!-- LOGO MODIFICADO - Enlaza a landingpage.html -->
+        <div class="flex items-center justify-center gap-4 pt-8 pb-4">
+            <a href="/" class="flex items-center gap-4 text-white hover:text-gray-300 transition-colors">
+                <div class="text-primary flex items-center justify-center">
+                    <span class="material-symbols-outlined text-4xl">shield_with_heart</span>
+                </div>
+                <h1 class="text-2xl font-bold leading-tight tracking-tight">VulnShield Scanner</h1>
+            </a>
+        </div>
         <input type="checkbox" id="form-toggle" class="hidden">
         
         <div class="switch-wrapper flex flex-col items-center pt-8 pb-4">
@@ -144,8 +158,11 @@
                 <h2 class="text-2xl font-bold mb-6 text-center">Bienvenido</h2>
                 <form id="login-form" class="space-y-4">
                     <div>
-                        <label class="field-label block text-sm mb-1">Usuario</label>
-                        <input id="login-usuario" type="text" maxlength="20" class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="tu_usuario">
+                        <label class="field-label block text-sm mb-1">Correo</label>
+                        <input id="login-correo" type="email" maxlength="50" class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="correo@ejemplo.com">
+                        <p id="login-correo-error" class="error-text mt-2 text-[10px] hidden">
+                            Ingrese un formato de correo válido.
+                        </p>
                     </div>
                     <div>
                         <label class="field-label block text-sm mb-1">Contraseña</label>
@@ -159,7 +176,7 @@
                             </button>
                         </div>
                         <p id="login-password-error" class="error-text mt-2 text-[10px] hidden">
-                            La contraseña no es válida.
+                            La contraseña no puede estar vacía.
                         </p>
                         <p id="login-error" class="error-text mt-2 text-[10px] hidden"></p>
                     </div>
@@ -173,6 +190,9 @@
                     <div>
                         <label class="field-label block text-sm mb-1">Nombre</label>
                         <input id="reg-usuario" type="text" maxlength="20" class="field-input w-full px-4 py-3 rounded-lg transition-colors" placeholder="Mari">
+                        <p id="reg-usuario-error" class="error-text mt-2 text-[10px] hidden">
+                            El usuario debe tener entre 6 y 20 caracteres y solo contener letras, números, guiones bajos (_) y puntos (.).
+                        </p>
                     </div>
                     
                     <div>
@@ -216,6 +236,11 @@
                 </form>
             </div>
         </div>
+
+        <!-- ENLACE MODIFICADO - Volver a landingpage.html -->
+        <div class="text-center pb-4">
+            <a href="/" class="text-sm text-primary hover:text-white transition-colors">Volver a la página principal</a>
+        </div>
     </div>
 
     <script>
@@ -223,15 +248,20 @@
         const btnEntrar = document.getElementById('btn-entrar');
         const btnRegistro = document.getElementById('btn-registro');
         const loginForm = document.getElementById('login-form');
-        const loginUsuario = document.getElementById('login-usuario');
+        
+        // Definir las variables del login
+        const loginCorreo = document.getElementById('login-correo');
         const loginPassword = document.getElementById('login-password');
+        const loginCorreoError = document.getElementById('login-correo-error');
         const loginPasswordError = document.getElementById('login-password-error');
         const loginError = document.getElementById('login-error');
+        
         const toggleLoginPassword = document.getElementById('toggle-login-password');
         const regUsuario = document.getElementById('reg-usuario');
         const regPassword = document.getElementById('reg-password');
         const regEmail = document.getElementById('reg-email');
         const regEmailError = document.getElementById('reg-email-error');
+        const regUsuarioError = document.getElementById('reg-usuario-error');
         const toggleRegisterPassword = document.getElementById('toggle-register-password');
         const passwordPopup = document.getElementById('password-popup');
         const reqLength = document.getElementById('req-length');
@@ -241,8 +271,15 @@
         const regPasswordError = document.getElementById('reg-password-error');
         const registerFeedback = document.getElementById('register-feedback');
 
+        function validateUsuario(usuario) {
+            if (!usuario) return false;
+            if (usuario.length < 6 || usuario.length > 20) return false;
+            return /^[a-zA-Z0-9_.]+$/.test(usuario);
+        }
+
         function validateEmail(email) {
-            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+            const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return re.test(email);
         }
 
         function validateRegisterPassword(value) {
@@ -272,11 +309,16 @@
 
         btnEntrar.addEventListener('click', () => formToggle.checked = false);
         btnRegistro.addEventListener('click', () => formToggle.checked = true);
+        
         bindPasswordToggle(toggleLoginPassword, loginPassword);
         bindPasswordToggle(toggleRegisterPassword, regPassword);
 
         regEmail.addEventListener('input', function() {
             setErrorStyle(this, regEmailError, this.value.length > 0 && !validateEmail(this.value));
+        });
+
+        regUsuario.addEventListener('input', function() {
+            setErrorStyle(this, regUsuarioError, this.value.length > 0 && !validateUsuario(this.value));
         });
 
         regPassword.addEventListener('focus', () => passwordPopup.classList.add('show-popup'));
@@ -297,19 +339,15 @@
             e.preventDefault();
             const isEmailValid = validateEmail(regEmail.value);
             const isPassValid = validateRegisterPassword(regPassword.value).isValid;
-            const isUserValid = (regUsuario.value || '').trim().length >= 3;
-            if (!isEmailValid || !isPassValid) {
+            const isUserValid = validateUsuario(regUsuario.value);
+            
+            if (!isEmailValid || !isPassValid || !isUserValid) {
                 setErrorStyle(regEmail, regEmailError, !isEmailValid);
                 setErrorStyle(regPassword, regPasswordError, !isPassValid);
-                if (!isEmailValid) regEmail.focus(); else regPassword.focus();
-                return;
-            }
-
-            if (!isUserValid) {
-                registerFeedback.textContent = 'El usuario debe tener al menos 3 caracteres.';
-                registerFeedback.classList.remove('hidden');
-                regUsuario.classList.add('input-error');
-                regUsuario.focus();
+                setErrorStyle(regUsuario, regUsuarioError, !isUserValid);
+                if (!isUserValid) regUsuario.focus();
+                else if (!isEmailValid) regEmail.focus();
+                else regPassword.focus();
                 return;
             }
 
@@ -330,9 +368,15 @@
                 if (!response.ok || data.error) {
                     throw new Error(data.error || 'No se pudo registrar');
                 }
-                registerFeedback.textContent = 'Registro exitoso. Ahora puedes iniciar sesión.';
+                registerFeedback.textContent = data.mensaje || 'Registro exitoso. Ahora puedes iniciar sesión.';
+                if (data.warning) {
+                    registerFeedback.textContent += ' (' + data.warning + ')';
+                }
                 registerFeedback.classList.remove('hidden');
                 registerForm.reset();
+                setErrorStyle(regUsuario, regUsuarioError, false);
+                setErrorStyle(regEmail, regEmailError, false);
+                setErrorStyle(regPassword, regPasswordError, false);
                 reqLength.classList.remove('req-valid'); reqLength.classList.add('req-invalid');
                 reqSpecial.classList.remove('req-valid'); reqSpecial.classList.add('req-invalid');
                 reqCase.classList.remove('req-valid'); reqCase.classList.add('req-invalid');
@@ -344,53 +388,66 @@
             });
         });
 
-        loginForm.addEventListener('submit', function(e) {
+        // Login form handler corregido
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
+            
+            // Ocultar todos los errores previos
+            loginError.classList.add('hidden');
+            loginPasswordError.classList.add('hidden');
+            loginCorreoError.classList.add('hidden');
+            loginCorreo.classList.remove('input-error');
+            loginPassword.classList.remove('input-error');
 
-            const usuario = (loginUsuario.value || '').trim();
-            const contrasena = loginPassword.value || '';
-            const passValid = validateRegisterPassword(contrasena).isValid;
+            const correo = loginCorreo.value.trim();
+            const password = loginPassword.value.trim();
 
-            setErrorStyle(loginPassword, loginPasswordError, contrasena.length > 0 && !passValid);
-            if (loginError) {
-                loginError.classList.add('hidden');
-                loginError.textContent = '';
+            let valid = true;
+
+            // Validación de correo
+            const correoRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+            if (!correo || !correoRegex.test(correo)) {
+                loginCorreo.classList.add('input-error');
+                loginCorreoError.classList.remove('hidden');
+                valid = false;
             }
 
-            if (!usuario || !contrasena) {
-                if (loginError) {
-                    loginError.textContent = 'Usuario y contraseña son obligatorios.';
-                    loginError.classList.remove('hidden');
-                }
-                return;
+            // Validación de contraseña
+            if (!password) {
+                loginPassword.classList.add('input-error');
+                valid = false;
             }
 
-            if (!passValid) {
-                if (loginError) {
-                    loginError.textContent = 'La contraseña debe cumplir con la política de seguridad.';
-                    loginError.classList.remove('hidden');
-                }
-                return;
-            }
+            if (!valid) return;
 
-            fetch('/api/auth/login', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ usuario, contrasena })
-            })
-            .then(async (response) => {
-                const data = await response.json();
-                if (!response.ok || data.error) {
-                    throw new Error(data.error || 'Credenciales inválidas');
-                }
-                window.location.href = data.redirect || '/admin';
-            })
-            .catch((error) => {
-                if (loginError) {
-                    loginError.textContent = error.message;
+            try {
+                const resp = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        correo: correo, 
+                        contrasena: password 
+                    })
+                });
+
+                const data = await resp.json();
+
+                if (resp.ok && data.ok) {
+                    if (data.redirect) {
+                        window.location.href = data.redirect;
+                    } else {
+                        // Si no hay redirect específico, ir al dashboard
+                        window.location.href = '/';
+                    }
+                } else {
+                    loginError.textContent = data.error || 'Credenciales inválidas';
                     loginError.classList.remove('hidden');
                 }
-            });
+            } catch (err) {
+                console.error('Error en login:', err);
+                loginError.textContent = 'Error de conexión con el servidor';
+                loginError.classList.remove('hidden');
+            }
         });
     </script>
 </body>

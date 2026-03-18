@@ -73,19 +73,15 @@
                     <h2 class="text-white text-xl font-bold leading-tight tracking-tight">VulnShield Scanner</h2>
                 </div>
                 <div class="flex items-center gap-6">
-                    <div class="hidden md:flex gap-4">
-                        <button
-                            class="flex items-center justify-center rounded-xl h-10 w-10 bg-accent-dark/20 text-slate-300 hover:bg-accent-dark/40 transition-colors">
-                            <span class="material-symbols-outlined">dark_mode</span>
-                        </button>
-                        <button
-                            class="flex items-center justify-center rounded-xl h-10 w-10 bg-accent-dark/20 text-slate-300 hover:bg-accent-dark/40 transition-colors">
+                    <div class="hidden md:flex gap-4 items-center">
+                        <span class="flex items-center gap-2 text-slate-200 font-medium">
                             <span class="material-symbols-outlined">account_circle</span>
-                        </button>
-                    </div>
-                    <div class="h-10 w-10 rounded-full border-2 border-primary/50 bg-cover bg-center"
-                        data-alt="User profile avatar with blue border"
-                        style="background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAa6t6BSuIKPUoMaE4vVZXU3UWZDPRoqDybKXbAIg8uTLpNk7M-BYbwqEoFsc1zNDAJgZzIpH2RJPg71F9Q-7AlxLBJDnMyLea1L0jY65Iw0Uv3wP2NsuVVt0g29-SBfw-GyQnh9sW6YAvezDv_LwV2KpWvvyqb-Ol9rrtnkUr1W02lJProlwG6UpZBDZb2wQdGsBErK9p12MWWDabGr24g0qr7q6TOMYG10FhA7L6vniGVtIOGjEIiIMHgrrt6zLuudX50aZuI2oGX')">
+                            Bienvenido, {{ usuario }}
+                        </span>
+                        <a href="/logout" title="Cerrar sesión"
+                            class="flex items-center justify-center rounded-xl h-10 w-10 bg-red-600 hover:bg-red-700 text-white transition-colors ml-2">
+                            <span class="material-symbols-outlined">logout</span>
+                        </a>
                     </div>
                 </div>
             </header>
@@ -104,7 +100,7 @@
                     </div>
                     <nav class="flex flex-col gap-2">
                         <a class="flex items-center gap-3 px-4 py-3 rounded-xl bg-primary text-background-dark font-bold transition-all"
-                            href="#">
+                            href="/dashboard">
                             <span class="material-symbols-outlined">dashboard</span>
                             <span class="text-sm">Dashboard</span>
                         </a>
@@ -114,17 +110,7 @@
                             <span class="text-sm">Escaneos</span>
                         </a>
                         <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all"
-                            href="#">
-                            <span class="material-symbols-outlined">description</span>
-                            <span class="text-sm">Informes</span>
-                        </a>
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all"
-                            href="#">
-                            <span class="material-symbols-outlined">lan</span>
-                            <span class="text-sm">Activos</span>
-                        </a>
-                        <a class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-400 hover:bg-accent-dark/20 hover:text-white transition-all"
-                            href="#">
+                            href="/configuracion">
                             <span class="material-symbols-outlined">settings</span>
                             <span class="text-sm">Ajustes</span>
                         </a>

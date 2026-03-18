@@ -16,7 +16,6 @@ SCAN_LIMIT_HOURLY = os.getenv('SCAN_LIMIT_HOURLY', '15 per hour')
 
 
 def _hallazgos_para_bd(resultados):
-    """Convierte resultados de escaneo al formato esperado por la capa de datos."""
     hallazgos = []
     for res in resultados:
         tipo = str(res.get('tipo', '')).strip()
@@ -31,7 +30,6 @@ def _hallazgos_para_bd(resultados):
 
 
 def _formatear_resultado_para_usuario(resultado):
-    """Traduce mensajes tecnicos a textos amigables para el usuario final."""
     item = dict(resultado)
     tipo = str(item.get('tipo', ''))
     descripcion = str(item.get('descripcion', ''))
@@ -64,74 +62,6 @@ def _formatear_resultado_para_usuario(resultado):
 
 def _formatear_resultados_para_usuario(resultados):
     return [_formatear_resultado_para_usuario(r) for r in resultados]
-
-
-@scan_bp.route('/', methods=['GET', 'POST'])
-@limiter.limit(SCAN_LIMIT_HOURLY, methods=['POST'])
-@limiter.limit(SCAN_LIMIT_INTERVAL, methods=['POST'])
-def dashboard():
-    resultados = []
-    url_objetivo = ""
-    protocolo_usado = "No especificado"
-    ultimo_escaneo_id = None
-    metricas_dashboard = base_datos.obtener_metricas_resumen()
-    total_hallazgos_bd = metricas_dashboard['total_hallazgos']
-
-    if request.method == 'POST':
-        admin_id = session.get('admin_id', 1)
-        protocolo = request.form.get('protocolo', 'https://')
-        url_ingresada = request.form.get('url', '')
-
-        url_objetivo, error_validacion = construir_y_validar_url(
-            protocolo, url_ingresada)
-        if error_validacion:
-            resultados = [{
-                'tipo': 'Entrada invalida',
-                'severidad': 'Media',
-                'descripcion': error_validacion,
-            }]
-            protocolo_usado = 'HTTPS' if protocolo == 'https://' else 'HTTP' if protocolo == 'http://' else 'No especificado'
-            return render_template(
-                'dashboard.html',
-                resultados=resultados,
-                url_escaneada=url_ingresada,
-                protocolo_usado=protocolo_usado,
-                total_hallazgos_bd=total_hallazgos_bd,
-                total_escaneos_bd=metricas_dashboard['total_escaneos'],
-                total_criticas_bd=metricas_dashboard['vulnerabilidades_criticas'],
-                escaneos_hoy_bd=metricas_dashboard['escaneos_hoy'],
-                ultimo_escaneo_id=ultimo_escaneo_id,
-            )
-
-        protocolo_usado = obtener_protocolo_desde_url(url_objetivo)
-
-        print(f"Escaneando: {url_objetivo}")
-
-        resultados = motor_escaneo.iniciar_escaneo_completo(url_objetivo)
-        resultados_mostrables = _formatear_resultados_para_usuario(resultados)
-
-        hallazgos_bd = _hallazgos_para_bd(resultados)
-        ultimo_escaneo_id = base_datos.guardar_analisis_completo(
-            url=url_objetivo,
-            protocolo=protocolo_usado,
-            administrador_id=admin_id,
-            hallazgos_list=hallazgos_bd,
-            tiempo_ejecucion=0,
-        )
-        metricas_dashboard = base_datos.obtener_metricas_resumen()
-        total_hallazgos_bd = metricas_dashboard['total_hallazgos']
-
-    return render_template(
-        'dashboard.html',
-        resultados=resultados_mostrables if request.method == 'POST' else resultados,
-        url_escaneada=url_objetivo,
-        protocolo_usado=protocolo_usado,
-        total_hallazgos_bd=total_hallazgos_bd,
-        total_escaneos_bd=metricas_dashboard['total_escaneos'],
-        total_criticas_bd=metricas_dashboard['vulnerabilidades_criticas'],
-        escaneos_hoy_bd=metricas_dashboard['escaneos_hoy'],
-        ultimo_escaneo_id=ultimo_escaneo_id,
-    )
 
 
 @scan_bp.route('/api/escanear', methods=['POST'])
@@ -185,6 +115,35 @@ def api_escanear():
 
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+
+@scan_bp.route('/api/historial-escaneos', methods=['GET'])
+def api_historial_escaneos():
+    """Devuelve el historial de escaneos del usuario actual"""
+    print("\n" + "="*60)
+    print("🚀 API /api/historial-escaneos llamado")
+    print("="*60)
+    
+    admin_id = session.get('admin_id')
+    admin_usuario = session.get('admin_usuario', 'desconocido')
+    
+    print(f"👤 Usuario en sesión: ID={admin_id}, Usuario={admin_usuario}")
+    
+    if not admin_id:
+        print("❌ No autorizado - sesión no encontrada")
+        return jsonify({'error': 'No autorizado', 'historial': []}), 401
+    
+    try:
+        historial = base_datos.obtener_historial_escaneos(admin_id)
+        print(f"✅ API - Historial obtenido: {len(historial)} registros")
+        
+        return jsonify({'ok': True, 'historial': historial})
+        
+    except Exception as e:
+        print(f"❌ Error en API historial: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'error': str(e), 'historial': []}), 500
 
 
 @scan_bp.route('/api/verificar-url', methods=['POST'])
@@ -285,33 +244,87 @@ def enviar_informe_por_correo():
 
 @scan_bp.route('/reportes/vista-previa', methods=['GET'])
 def vista_previa_informe():
+    if not session.get('admin_id'):
+        return redirect(url_for('auth.inisesion'))
     admin_id = session.get('admin_id', 1)
 
     escaneo_id = request.args.get('escaneo_id')
+    from flask import make_response
     if escaneo_id is not None:
         try:
             escaneo_id = int(escaneo_id)
         except (TypeError, ValueError):
-            return render_template(
+            response = render_template(
                 'reporte_resultados.html',
                 reporte=None,
                 error_reporte='El identificador de escaneo no es valido.',
                 modo_pdf=False,
-            ), 400
+            )
+            resp = make_response(response)
+            resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+            resp.headers['Pragma'] = 'no-cache'
+            resp.headers['Expires'] = '0'
+            return resp, 400
 
     reporte = base_datos.obtener_reporte_escaneo(
         admin_id, escaneo_id=escaneo_id)
     if not reporte:
-        return render_template(
+        response = render_template(
             'reporte_resultados.html',
             reporte=None,
             error_reporte='No hay datos de escaneo disponibles para mostrar la vista previa.',
             modo_pdf=False,
-        ), 404
+        )
+        resp = make_response(response)
+        resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+        resp.headers['Pragma'] = 'no-cache'
+        resp.headers['Expires'] = '0'
+        return resp, 404
 
-    return render_template(
+    response = render_template(
         'reporte_resultados.html',
         reporte=reporte,
         error_reporte=None,
         modo_pdf=False,
     )
+    resp = make_response(response)
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
+    return resp
+
+
+@scan_bp.route('/escaneos')
+def escaneos():
+    if not session.get('admin_id'):
+        return redirect(url_for('auth.inisesion'))
+    usuario = session.get('admin_usuario', 'Usuario')
+    return render_template('escaneos.html', usuario=usuario)
+
+
+# ============================================
+# RUTA PRINCIPAL - SIEMPRE MUESTRA LANDINGPAGE.HTML
+# ============================================
+@scan_bp.route('/', methods=['GET'])
+def root_redirect():
+    """Página principal pública - siempre muestra landingpage.html"""
+    return render_template('landingpage.html')
+
+
+@scan_bp.route('/dashboard', methods=['GET'])
+def dashboard():
+    if not session.get('admin_id'):
+        return redirect(url_for('auth.inisesion'))
+    usuario = session.get('admin_usuario', 'Usuario')
+    return render_template('dashboard.html', usuario=usuario)
+
+
+# ============================================
+# NUEVA RUTA PARA CONFIGURACIÓN
+# ============================================
+@scan_bp.route('/configuracion')
+def configuracion():
+    if not session.get('admin_id'):
+        return redirect(url_for('auth.inisesion'))
+    usuario = session.get('admin_usuario', 'Usuario')
+    return render_template('configuracion.html', usuario=usuario)

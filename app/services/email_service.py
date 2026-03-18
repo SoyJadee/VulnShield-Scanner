@@ -63,3 +63,29 @@ def enviar_correo_con_adjunto(destinatario, asunto, cuerpo_texto, nombre_adjunto
     except Exception as exc:
         raise EmailDeliveryError(
             f'No se pudo enviar el correo: {exc}') from exc
+
+
+def enviar_correo(destinatario, asunto, cuerpo_texto):
+    """Envía un correo de texto simple usando SMTP.
+
+    Esta función se orienta a mensajes de confirmación, alertas y otras
+    notificaciones que no requieren adjuntos.
+    """
+    config = _smtp_config_desde_entorno()
+
+    mensaje = EmailMessage()
+    mensaje['Subject'] = asunto
+    mensaje['From'] = config['sender']
+    mensaje['To'] = destinatario
+    mensaje.set_content(cuerpo_texto)
+
+    try:
+        with smtplib.SMTP(config['host'], config['port'], timeout=20) as smtp:
+            if config['use_tls']:
+                smtp.starttls()
+            if config['user'] and config['password']:
+                smtp.login(config['user'], config['password'])
+            smtp.send_message(mensaje)
+    except Exception as exc:
+        raise EmailDeliveryError(
+            f'No se pudo enviar el correo: {exc}') from exc

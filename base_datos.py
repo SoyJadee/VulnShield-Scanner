@@ -63,12 +63,20 @@ def _normalizar_tipo(tipo):
 
 
 def _asegurar_id_admin(cursor):
+    """Asegura que existe el usuario admin y devuelve su ID."""
+    # Verificar si ya existe admin por username o correo
     cursor.execute(
-        'SELECT "idUsuario" FROM "Usuario" WHERE username = %s', ("admin",))
+        'SELECT "idUsuario" FROM "Usuario" WHERE username = %s OR correo = %s',
+        ('admin', 'admin@vulnshield.com')
+    )
     row = cursor.fetchone()
     if row:
         return row[0]
 
+    # Si no existe, crear admin con contraseña 'admin123'
+    from werkzeug.security import generate_password_hash
+    admin_hash = generate_password_hash('admin123')
+    
     cursor.execute(
         '''
         INSERT INTO "Usuario" (username, correo, password_hash, "inRol")
@@ -78,11 +86,13 @@ def _asegurar_id_admin(cursor):
         (
             "admin",
             "admin@vulnshield.com",
-            "$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj4LhGqgHqSO",
+            admin_hash,
             True,
         ),
     )
-    return cursor.fetchone()[0]
+    admin_id = cursor.fetchone()[0]
+    print(f"✅ Usuario admin creado con ID: {admin_id}")
+    return admin_id
 
 
 def inicializar_db():
@@ -107,7 +117,7 @@ def inicializar_db():
             '''
             CREATE TABLE IF NOT EXISTS "Usuario" (
                 "idUsuario" SERIAL PRIMARY KEY,
-                username VARCHAR(50) UNIQUE NOT NULL,
+                username VARCHAR(50) NOT NULL,
                 correo VARCHAR(100) UNIQUE NOT NULL,
                 password_hash VARCHAR(255) NOT NULL,
                 "inRol" BOOLEAN NOT NULL DEFAULT FALSE
@@ -331,6 +341,7 @@ def guardar_hallazgo(url, tipo):
 
 
 def listar_administradores():
+    """Lista todos los usuarios que son administradores (inRol = True)"""
     conexion = conectar()
     if not conexion:
         return None
@@ -359,19 +370,36 @@ def listar_administradores():
 
 
 def crear_administrador(usuario, contrasena_hash, email, es_admin=False):
+    """Crea un nuevo usuario en la base de datos"""
     conexion = conectar()
     if not conexion:
         return {'ok': False, 'error': 'Sin conexion a base de datos'}
 
     cursor = conexion.cursor()
     try:
+        # Validar unicidad de correo
+        cursor.execute(
+            'SELECT 1 FROM "Usuario" WHERE correo = %s',
+            (email,),
+        )
+        if cursor.fetchone():
+            return {'ok': False, 'error': 'El correo ya se encuentra registrado'}
+
+        # Validar unicidad de usuario (opcional, por si quieres que sea único)
+        cursor.execute(
+            'SELECT 1 FROM "Usuario" WHERE username = %s',
+            (usuario,),
+        )
+        if cursor.fetchone():
+            return {'ok': False, 'error': 'El nombre de usuario ya se encuentra registrado'}
+
         cursor.execute(
             '''
             INSERT INTO "Usuario" (username, correo, password_hash, "inRol")
             VALUES (%s, %s, %s, %s)
             RETURNING "idUsuario"
             ''',
-            (usuario, email or f"{usuario}@local", contrasena_hash, es_admin),
+            (usuario, email, contrasena_hash, es_admin),
         )
         nuevo_id = cursor.fetchone()[0]
         conexion.commit()
@@ -385,12 +413,14 @@ def crear_administrador(usuario, contrasena_hash, email, es_admin=False):
 
 
 def eliminar_administrador(admin_id, admin_principal='admin'):
+    """Elimina un administrador, evitando eliminar al principal"""
     conexion = conectar()
     if not conexion:
         return {'ok': False, 'error': 'Sin conexion a base de datos'}
 
     cursor = conexion.cursor()
     try:
+        # Verificar que el usuario existe y es admin
         cursor.execute(
             'SELECT username FROM "Usuario" WHERE "idUsuario" = %s AND "inRol" = TRUE',
             (admin_id,),
@@ -399,11 +429,11 @@ def eliminar_administrador(admin_id, admin_principal='admin'):
         if not row:
             return {'ok': False, 'error': 'Administrador no encontrado'}
 
+        # No permitir eliminar al administrador principal
         if row[0].strip().lower() == admin_principal.strip().lower():
             return {'ok': False, 'error': 'No se puede eliminar el administrador principal'}
 
-        cursor.execute(
-            'DELETE FROM "Usuario" WHERE "idUsuario" = %s', (admin_id,))
+        cursor.execute('DELETE FROM "Usuario" WHERE "idUsuario" = %s', (admin_id,))
         conexion.commit()
         return {'ok': True}
     except Exception as e:
@@ -415,6 +445,7 @@ def eliminar_administrador(admin_id, admin_principal='admin'):
 
 
 def obtener_administrador_por_usuario(usuario):
+    """Devuelve el usuario (sin requerir que sea admin)."""
     conexion = conectar()
     if not conexion:
         return None
@@ -429,7 +460,7 @@ def obtener_administrador_por_usuario(usuario):
                 password_hash AS contrasena_hash,
                 "inRol" AS activo
             FROM "Usuario"
-            WHERE username = %s AND "inRol" = TRUE
+            WHERE username = %s
             ''',
             (usuario,),
         )
@@ -437,6 +468,38 @@ def obtener_administrador_por_usuario(usuario):
         return dict(row) if row else None
     except Exception as e:
         print(f"Error obteniendo administrador: {e}")
+        return None
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def obtener_administrador_por_correo(correo):
+    """Devuelve el usuario por correo."""
+    conexion = conectar()
+    if not conexion:
+        return None
+
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute(
+            '''
+            SELECT
+                "idUsuario" AS id,
+                username AS usuario,
+                correo AS email,
+                password_hash AS contrasena_hash,
+                "inRol" AS activo
+            FROM "Usuario"
+            WHERE correo = %s
+            ''',
+            (correo,),
+        )
+        row = cursor.fetchone()
+        print(f"🔍 Resultado BD para correo {correo}: {row}")
+        return dict(row) if row else None
+    except Exception as e:
+        print(f"Error obteniendo administrador por correo: {e}")
         return None
     finally:
         cursor.close()
@@ -718,6 +781,269 @@ def obtener_datos_dashboard():
         conexion.close()
 
     return datos
+
+
+def obtener_historial_escaneos(usuario_id):
+    """Obtiene el historial completo de escaneos para un usuario (VERSIÓN OPTIMIZADA)"""
+    print(f"\n🔍 obtener_historial_escaneos - Usuario ID: {usuario_id}")
+    
+    conexion = conectar()
+    if not conexion:
+        print("❌ Error de conexión a BD")
+        return []
+    
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        # 1. Verificar usuario
+        cursor.execute('SELECT * FROM "Usuario" WHERE "idUsuario" = %s', (usuario_id,))
+        usuario = cursor.fetchone()
+        if not usuario:
+            print(f"❌ Usuario {usuario_id} no existe")
+            return []
+        
+        print(f"✅ Usuario encontrado: {usuario['username']}")
+        
+        # 2. Obtener escaneos básicos (sin joins pesados)
+        cursor.execute('''
+            SELECT 
+                e."idEscaneo",
+                e.url_objetivo as url,
+                CASE 
+                    WHEN e.url_objetivo LIKE 'https://%%' THEN 'HTTPS'
+                    ELSE 'HTTP'
+                END as protocolo,
+                e.fecha
+            FROM "Escaneo" e
+            WHERE e."idUsuario" = %s
+            ORDER BY e.fecha DESC
+        ''', (usuario_id,))
+        
+        escaneos = cursor.fetchall()
+        print(f"📊 Escaneos encontrados: {len(escaneos)}")
+        
+        if not escaneos:
+            print("⚠️ No hay escaneos para este usuario")
+            return []
+        
+        # 3. Para cada escaneo, obtener sus hallazgos (consulta separada)
+        historial = []
+        for escaneo in escaneos:
+            try:
+                escaneo_id = escaneo['idEscaneo']
+                
+                # Obtener hallazgos para este escaneo
+                cursor.execute('''
+                    SELECT 
+                        cv."Nombre" as tipo_vuln,
+                        ns."Nombre" as severidad
+                    FROM "hallazgo" h
+                    JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
+                    JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+                    WHERE h."idEscaneo" = %s
+                ''', (escaneo_id,))
+                
+                hallazgos = cursor.fetchall()
+                
+                # Procesar hallazgos
+                tipos = [h['tipo_vuln'] for h in hallazgos if h['tipo_vuln']]
+                severidades = [h['severidad'] for h in hallazgos if h['severidad']]
+                
+                total_vuln = len(hallazgos)
+                
+                # Determinar severidad máxima
+                if 'Critico' in severidades:
+                    max_severidad = 'Critico'
+                    clase_badge = 'bg-red-600'
+                elif 'Alto' in severidades:
+                    max_severidad = 'Alto'
+                    clase_badge = 'bg-red-600'
+                elif 'Medio' in severidades:
+                    max_severidad = 'Medio'
+                    clase_badge = 'bg-orange-500'
+                elif 'Bajo' in severidades:
+                    max_severidad = 'Bajo'
+                    clase_badge = 'bg-orange-500'
+                else:
+                    max_severidad = 'Sin riesgo'
+                    clase_badge = 'bg-green-600'
+                
+                # Tipos de vulnerabilidad
+                tipos_str = ', '.join(set(tipos)) if tipos else 'Ninguna'
+                
+                # Formatear fecha
+                fecha_obj = escaneo['fecha']
+                fecha_str = fecha_obj.strftime('%d/%m/%Y') if fecha_obj else '00/00/0000'
+                hora_str = fecha_obj.strftime('%H:%M') if fecha_obj else '00:00'
+                
+                historial.append({
+                    'id': escaneo_id,
+                    'url': escaneo['url'],
+                    'protocolo': escaneo['protocolo'],
+                    'fecha': fecha_str,
+                    'hora': hora_str,
+                    'total_vuln': total_vuln,
+                    'tipos_vuln': tipos_str,
+                    'severidad': max_severidad,
+                    'clase_badge': clase_badge
+                })
+                
+            except Exception as e:
+                print(f"❌ Error procesando escaneo {escaneo_id}: {e}")
+                continue
+        
+        print(f"✅ Historial formateado: {len(historial)} escaneos")
+        return historial
+        
+    except Exception as e:
+        print(f"❌ Error en obtener_historial_escaneos: {e}")
+        import traceback
+        traceback.print_exc()
+        return []
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+# ============================================
+# FUNCIONES PARA CONFIGURACIÓN Y ADMINISTRACIÓN
+# ============================================
+
+def obtener_usuario_por_id(usuario_id):
+    """Obtiene los datos de un usuario por su ID"""
+    conexion = conectar()
+    if not conexion:
+        return None
+    
+    cursor = conexion.cursor(cursor_factory=RealDictCursor)
+    try:
+        cursor.execute('''
+            SELECT 
+                "idUsuario" AS id,
+                username AS usuario,
+                correo AS email,
+                password_hash AS contrasena_hash,
+                "inRol" AS activo
+            FROM "Usuario"
+            WHERE "idUsuario" = %s
+        ''', (usuario_id,))
+        
+        row = cursor.fetchone()
+        return dict(row) if row else None
+    except Exception as e:
+        print(f"Error obteniendo usuario por ID: {e}")
+        return None
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def existe_usuario(usuario, usuario_id_excluir=None):
+    """Verifica si ya existe un usuario con ese nombre, excluyendo opcionalmente un ID"""
+    conexion = conectar()
+    if not conexion:
+        return False
+    
+    cursor = conexion.cursor()
+    try:
+        if usuario_id_excluir:
+            cursor.execute(
+                'SELECT 1 FROM "Usuario" WHERE username = %s AND "idUsuario" != %s',
+                (usuario, usuario_id_excluir)
+            )
+        else:
+            cursor.execute(
+                'SELECT 1 FROM "Usuario" WHERE username = %s',
+                (usuario,)
+            )
+        return cursor.fetchone() is not None
+    except Exception as e:
+        print(f"Error verificando usuario: {e}")
+        return False
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def existe_email(email, usuario_id_excluir=None):
+    """Verifica si ya existe un usuario con ese email, excluyendo opcionalmente un ID"""
+    conexion = conectar()
+    if not conexion:
+        return False
+    
+    cursor = conexion.cursor()
+    try:
+        if usuario_id_excluir:
+            cursor.execute(
+                'SELECT 1 FROM "Usuario" WHERE correo = %s AND "idUsuario" != %s',
+                (email, usuario_id_excluir)
+            )
+        else:
+            cursor.execute(
+                'SELECT 1 FROM "Usuario" WHERE correo = %s',
+                (email,)
+            )
+        return cursor.fetchone() is not None
+    except Exception as e:
+        print(f"Error verificando email: {e}")
+        return False
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def actualizar_usuario(usuario_id, campo, valor):
+    """Actualiza un campo del usuario (username o email)"""
+    conexion = conectar()
+    if not conexion:
+        return False
+    
+    cursor = conexion.cursor()
+    try:
+        if campo == 'usuario':
+            cursor.execute(
+                'UPDATE "Usuario" SET username = %s WHERE "idUsuario" = %s',
+                (valor, usuario_id)
+            )
+        elif campo == 'email':
+            cursor.execute(
+                'UPDATE "Usuario" SET correo = %s WHERE "idUsuario" = %s',
+                (valor, usuario_id)
+            )
+        else:
+            return False
+        
+        conexion.commit()
+        return cursor.rowcount > 0
+    except Exception as e:
+        conexion.rollback()
+        print(f"Error actualizando usuario: {e}")
+        return False
+    finally:
+        cursor.close()
+        conexion.close()
+
+
+def actualizar_contrasena(usuario_id, nuevo_hash):
+    """Actualiza la contraseña del usuario"""
+    conexion = conectar()
+    if not conexion:
+        return False
+    
+    cursor = conexion.cursor()
+    try:
+        cursor.execute(
+            'UPDATE "Usuario" SET password_hash = %s WHERE "idUsuario" = %s',
+            (nuevo_hash, usuario_id)
+        )
+        conexion.commit()
+        return cursor.rowcount > 0
+    except Exception as e:
+        conexion.rollback()
+        print(f"Error actualizando contraseña: {e}")
+        return False
+    finally:
+        cursor.close()
+        conexion.close()
 
 
 if __name__ == '__main__':
