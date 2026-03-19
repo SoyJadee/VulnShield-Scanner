@@ -361,7 +361,8 @@ def iniciar_escaneo_completo(url):
                     f"SQLi timeout con {url_sqli} (timeout={timeout_segundos}s)")
                 continue
             except requests.exceptions.RequestException as e:
-                registrar_error_red(f"SQLi fallo de conexión con {url_sqli}: {e}")
+                registrar_error_red(
+                    f"SQLi fallo de conexión con {url_sqli}: {e}")
                 continue
             except Exception as e:
                 print(f"[-] Error SQLi: {e}")
