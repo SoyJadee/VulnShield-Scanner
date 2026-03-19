@@ -47,6 +47,12 @@ def _formatear_resultado_para_usuario(resultado):
         match = re.search(patron, descripcion, flags=re.IGNORECASE)
         if match:
             maliciosos, sospechosos, seguros, sin_detectar = match.groups()
+            item['severidad'] = motor_escaneo.calcular_severidad_virustotal(
+                maliciosos,
+                sospechosos,
+                seguros,
+                sin_detectar,
+            )
             item['descripcion'] = (
                 'Motores de seguridad: '
                 f'maliciosos {maliciosos}, sospechosos {sospechosos}, '

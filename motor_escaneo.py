@@ -7,6 +7,28 @@ import base64
 import time
 
 
+def calcular_severidad_virustotal(malicious, suspicious, harmless=0, undetected=0):
+    """Calcula severidad para reputacion de URL segun cantidad de motores detectando riesgo."""
+    try:
+        malicious = max(0, int(malicious or 0))
+        suspicious = max(0, int(suspicious or 0))
+        harmless = max(0, int(harmless or 0))
+        undetected = max(0, int(undetected or 0))
+    except Exception:
+        return "Baja"
+
+    detecciones = malicious + suspicious
+    total_motores = malicious + suspicious + harmless + undetected
+    tasa_deteccion = (detecciones / total_motores) if total_motores > 0 else 0
+
+    # Umbrales conservadores: 1 motor no debe elevar automaticamente a "Alta".
+    if malicious >= 5 or detecciones >= 8 or tasa_deteccion >= 0.20:
+        return "Alta"
+    if malicious >= 2 or detecciones >= 3 or tasa_deteccion >= 0.05:
+        return "Media"
+    return "Baja"
+
+
 def _analizar_url_virustotal(url):
     """Consulta reputacion de URL en VirusTotal si hay API key configurada."""
     api_key = os.getenv("VIRUSTOTAL_API_KEY", "").strip()
@@ -58,12 +80,12 @@ def _analizar_url_virustotal(url):
         harmless = int(stats.get("harmless", 0))
         undetected = int(stats.get("undetected", 0))
 
-        if malicious > 0:
-            severidad = "Alta"
-        elif suspicious > 0:
-            severidad = "Media"
-        else:
-            severidad = "Baja"
+        severidad = calcular_severidad_virustotal(
+            malicious=malicious,
+            suspicious=suspicious,
+            harmless=harmless,
+            undetected=undetected,
+        )
 
         return {
             "tipo": "VirusTotal URL Reputation",
