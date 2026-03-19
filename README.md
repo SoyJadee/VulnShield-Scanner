@@ -102,18 +102,3 @@ si en su computadora local ya se encuentra un administrador, pero le aparece err
 - Inicie de nuevo app.py
 
 Con estos pasos se creara un adminstrador desde cero y podra ingresar
-
-# ENVIO DE CORREO
-crear un archivo .env y colocar esto
-DB_HOST=localhost
-DB_PORT=5432
-DB_NAME=vulnshield_db
-DB_USER=jade
-DB_PASSWORD=123456
-VIRUSTOTAL_API_KEY=26f506a1c848e3b47d90fdb7e5c2eaf3b36e84c146485eb1cd9ecaf6b73e3f60
-SMTP_HOST=smtp.gmail.com
-SMTP_PORT=587
-SMTP_USER=vulnshieldScanner@gmail.com
-SMTP_PASSWORD=grpjgcvuhyyjaqvd
-SMTP_FROM=vulnshieldScanner@gmail.com
-SMTP_USE_TLS=true
