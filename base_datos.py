@@ -62,6 +62,19 @@ def _normalizar_tipo(tipo):
     return tipo.split(" - ")[0].strip()
 
 
+def _normalizar_severidad(nombre):
+    valor = str(nombre or '').strip().lower()
+    if valor in ('critico', 'crítico'):
+        return 'Critico'
+    if valor in ('alto', 'alta'):
+        return 'Alto'
+    if valor == 'medio':
+        return 'Medio'
+    if valor in ('bajo', 'baja'):
+        return 'Bajo'
+    return 'Medio'
+
+
 def _asegurar_id_admin(cursor):
     """Asegura que existe el usuario admin y devuelve su ID."""
     # Verificar si ya existe admin por username o correo
@@ -169,15 +182,23 @@ def inicializar_db():
                 "idHallazgo" SERIAL PRIMARY KEY,
                 "idEscaneo" INTEGER NOT NULL,
                 "idVulnerabilidad" INTEGER NOT NULL,
+                "idseveridad" INTEGER,
                 parametro TEXT,
                 payload TEXT,
                 CONSTRAINT fk_hallazgo_escaneo
                     FOREIGN KEY ("idEscaneo") REFERENCES "Escaneo"("idEscaneo")
                     ON DELETE CASCADE,
                 CONSTRAINT fk_hallazgo_vulnerabilidad
-                    FOREIGN KEY ("idVulnerabilidad") REFERENCES "catalogo_Vulnerabilidad"("idvulnerabilidad")
+                    FOREIGN KEY ("idVulnerabilidad") REFERENCES "catalogo_Vulnerabilidad"("idvulnerabilidad"),
+                CONSTRAINT fk_hallazgo_severidad
+                    FOREIGN KEY ("idseveridad") REFERENCES "niveles_severidad"("id_severidad")
             )
             '''
+        )
+
+        # Migracion para instalaciones previas: severidad por hallazgo.
+        cursor.execute(
+            'ALTER TABLE "hallazgo" ADD COLUMN IF NOT EXISTS "idseveridad" INTEGER'
         )
 
         cursor.execute(
@@ -272,6 +293,14 @@ def guardar_analisis_completo(url, protocolo, administrador_id, hallazgos_list, 
 
         for hallazgo in hallazgos_list:
             tipo = _normalizar_tipo(hallazgo.get('tipo', ''))
+            severidad_nombre = _normalizar_severidad(hallazgo.get('severidad'))
+            cursor.execute(
+                'SELECT "id_severidad" FROM "niveles_severidad" WHERE "Nombre" = %s',
+                (severidad_nombre,),
+            )
+            sev = cursor.fetchone()
+            sev_id = sev[0] if sev else 3
+
             cursor.execute(
                 'SELECT "idvulnerabilidad" FROM "catalogo_Vulnerabilidad" WHERE "Nombre" = %s',
                 (tipo,),
@@ -279,10 +308,6 @@ def guardar_analisis_completo(url, protocolo, administrador_id, hallazgos_list, 
             row = cursor.fetchone()
 
             if not row:
-                cursor.execute(
-                    'SELECT "id_severidad" FROM "niveles_severidad" WHERE "Nombre" = %s', ("Medio",))
-                sev = cursor.fetchone()
-                sev_id = sev[0] if sev else 3
                 cursor.execute(
                     '''
                     INSERT INTO "catalogo_Vulnerabilidad"
@@ -299,12 +324,13 @@ def guardar_analisis_completo(url, protocolo, administrador_id, hallazgos_list, 
 
             cursor.execute(
                 '''
-                INSERT INTO "hallazgo" ("idEscaneo", "idVulnerabilidad", parametro, payload)
-                VALUES (%s, %s, %s, %s)
+                INSERT INTO "hallazgo" ("idEscaneo", "idVulnerabilidad", "idseveridad", parametro, payload)
+                VALUES (%s, %s, %s, %s, %s)
                 ''',
                 (
                     escaneo_id,
                     vuln_id,
+                    sev_id,
                     hallazgo.get('parametro', ''),
                     hallazgo.get('payload', ''),
                 ),
@@ -555,7 +581,7 @@ def obtener_metricas_resumen():
             SELECT COUNT(*)
             FROM "hallazgo" h
             JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
-            JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+            JOIN "niveles_severidad" ns ON ns."id_severidad" = COALESCE(h."idseveridad", cv."idseveridad")
             WHERE ns."Nombre" IN ('Critico', 'Alto')
         ''')
         row = cursor.fetchone()
@@ -688,7 +714,7 @@ def obtener_reporte_escaneo(usuario_id, escaneo_id=None):
                 COALESCE(h.payload, '') AS payload
             FROM "hallazgo" h
             JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
-            JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+            JOIN "niveles_severidad" ns ON ns."id_severidad" = COALESCE(h."idseveridad", cv."idseveridad")
             WHERE h."idEscaneo" = %s
             ORDER BY h."idHallazgo" ASC
             ''',
@@ -737,7 +763,7 @@ def obtener_datos_dashboard():
             SELECT COUNT(*)
             FROM "hallazgo" h
             JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
-            JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+            JOIN "niveles_severidad" ns ON ns."id_severidad" = COALESCE(h."idseveridad", cv."idseveridad")
             WHERE ns."Nombre" IN ('Critico', 'Alto')
         ''')
         datos['vulnerabilidades_criticas'] = cursor.fetchone()[0]
@@ -777,7 +803,7 @@ def obtener_datos_dashboard():
             FROM "Escaneo" e
             LEFT JOIN "hallazgo" h ON e."idEscaneo" = h."idEscaneo"
             LEFT JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
-            LEFT JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+            LEFT JOIN "niveles_severidad" ns ON ns."id_severidad" = COALESCE(h."idseveridad", cv."idseveridad")
             GROUP BY e."idEscaneo", e.url_objetivo, e.fecha
             ORDER BY e.fecha DESC
             LIMIT 20
@@ -878,7 +904,7 @@ def obtener_historial_escaneos(usuario_id):
                         ns."Nombre" as severidad
                     FROM "hallazgo" h
                     JOIN "catalogo_Vulnerabilidad" cv ON h."idVulnerabilidad" = cv."idvulnerabilidad"
-                    JOIN "niveles_severidad" ns ON cv."idseveridad" = ns."id_severidad"
+                    JOIN "niveles_severidad" ns ON ns."id_severidad" = COALESCE(h."idseveridad", cv."idseveridad")
                     WHERE h."idEscaneo" = %s
                 ''', (escaneo_id,))
 
@@ -903,7 +929,7 @@ def obtener_historial_escaneos(usuario_id):
                     clase_badge = 'bg-orange-500'
                 elif 'Bajo' in severidades:
                     max_severidad = 'Bajo'
-                    clase_badge = 'bg-orange-500'
+                    clase_badge = 'bg-green-600'
                 else:
                     max_severidad = 'Sin riesgo'
                     clase_badge = 'bg-green-600'

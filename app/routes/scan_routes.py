@@ -26,6 +26,7 @@ def _hallazgos_para_bd(resultados):
             continue
         hallazgos.append({
             'tipo': tipo,
+            'severidad': str(res.get('severidad', '') or '').strip(),
             'parametro': str(res.get('parametro', '') or ''),
             'payload': str(res.get('payload', '') or ''),
         })

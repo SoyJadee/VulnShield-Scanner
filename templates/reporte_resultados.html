@@ -86,13 +86,37 @@
         {% set puntaje = puntaje_raw %}
         {% endif %}
 
-        {% if total_hallazgos == 0 %}
+        {% set ns = namespace(riesgo_rank=0) %}
+        {% if reporte and reporte.hallazgos %}
+        {% for hallazgo in reporte.hallazgos %}
+        {% set sev = (hallazgo.severidad or '')|lower %}
+        {% if sev in ['critico', 'crítico', 'critica', 'crítica'] %}
+        {% set ns.riesgo_rank = [ns.riesgo_rank, 4]|max %}
+        {% elif sev in ['alto', 'alta'] %}
+        {% set ns.riesgo_rank = [ns.riesgo_rank, 3]|max %}
+        {% elif sev in ['medio', 'media'] %}
+        {% set ns.riesgo_rank = [ns.riesgo_rank, 2]|max %}
+        {% elif sev in ['bajo', 'baja'] %}
+        {% set ns.riesgo_rank = [ns.riesgo_rank, 1]|max %}
+        {% endif %}
+        {% endfor %}
+        {% endif %}
+
+        {% if ns.riesgo_rank <= 1 %}
         {% set riesgo_texto = 'RIESGO BAJO' %}
         {% set riesgo_color = 'text-emerald-300' %}
         {% set anillo_color = 'border-emerald-400/40' %}
-        {% elif total_hallazgos <= 2 %} {% set riesgo_texto='RIESGO MEDIO' %} {% set riesgo_color='text-yellow-300' %}
-            {% set anillo_color='border-yellow-400/40' %} {% else %} {% set riesgo_texto='RIESGO ELEVADO' %} {% set
-            riesgo_color='text-red-300' %} {% set anillo_color='border-red-400/40' %} {% endif %} <div
+        {% elif ns.riesgo_rank == 2 %}
+        {% set riesgo_texto = 'RIESGO MEDIO' %}
+        {% set riesgo_color = 'text-yellow-300' %}
+        {% set anillo_color = 'border-yellow-400/40' %}
+        {% else %}
+        {% set riesgo_texto = 'RIESGO ELEVADO' %}
+        {% set riesgo_color = 'text-red-300' %}
+        {% set anillo_color = 'border-red-400/40' %}
+        {% endif %}
+
+        <div
             class="no-print sticky top-0 z-30 bg-slate-900/50 border-b border-slate-800 backdrop-blur-sm">
             <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
                 <!-- Botón Volver al Historial (izquierda) -->
@@ -190,22 +214,26 @@
                         {% if reporte.hallazgos %}
                         {% for hallazgo in reporte.hallazgos %}
                         {% set sev = (hallazgo.severidad or '')|lower %}
-                        {% if sev == 'critico' %}
-                        {% set severidad_tag = 'Crítico' %}
+                        {% if sev in ['critico', 'crítico', 'critica', 'crítica'] %}
+                        {% set severidad_tag = 'Crítica' %}
                         {% set clase_borde = 'border-l-red-500' %}
                         {% set clase_chip = 'bg-red-500/20 text-red-200' %}
-                        {% elif sev == 'alto' %}
-                        {% set severidad_tag = 'Alto' %}
-                        {% set clase_borde = 'border-l-orange-400' %}
-                        {% set clase_chip = 'bg-orange-500/20 text-orange-200' %}
-                        {% elif sev == 'medio' %}
-                        {% set severidad_tag = 'Medio' %}
+                        {% elif sev in ['alto', 'alta'] %}
+                        {% set severidad_tag = 'Alta' %}
+                        {% set clase_borde = 'border-l-red-400' %}
+                        {% set clase_chip = 'bg-red-500/20 text-red-200' %}
+                        {% elif sev in ['medio', 'media'] %}
+                        {% set severidad_tag = 'Media' %}
                         {% set clase_borde = 'border-l-yellow-400' %}
                         {% set clase_chip = 'bg-yellow-500/20 text-yellow-100' %}
+                        {% elif sev in ['bajo', 'baja'] %}
+                        {% set severidad_tag = 'Baja' %}
+                        {% set clase_borde = 'border-l-emerald-400' %}
+                        {% set clase_chip = 'bg-emerald-500/20 text-emerald-100' %}
                         {% else %}
-                        {% set severidad_tag = hallazgo.severidad or 'Bajo' %}
-                        {% set clase_borde = 'border-l-cyan-400' %}
-                        {% set clase_chip = 'bg-cyan-500/20 text-cyan-100' %}
+                        {% set severidad_tag = hallazgo.severidad or 'Baja' %}
+                        {% set clase_borde = 'border-l-emerald-400' %}
+                        {% set clase_chip = 'bg-emerald-500/20 text-emerald-100' %}
                         {% endif %}
 
                         <div class="bg-card p-6 rounded-2xl border border-slate-800 border-l-4 {{ clase_borde }}">
