@@ -58,6 +58,30 @@
             align-items: center;
             gap: 4px;
         }
+
+        .protocol-help-popup {
+            background: #38aecc;
+            border: 1px solid #0090C1;
+            color: #022F40;
+            opacity: 0;
+            transform: translateY(-8px);
+            pointer-events: none;
+            transition: all 0.25s ease;
+        }
+
+        .protocol-help-popup.show-popup {
+            opacity: 1;
+            transform: translateY(0);
+            pointer-events: auto;
+        }
+
+        .protocol-help-popup li {
+            color: #183446;
+        }
+
+        .protocol-help-popup li strong {
+            color: #022F40;
+        }
     </style>
 </head>
 
@@ -177,6 +201,22 @@
                                 <h3 class="text-2xl font-bold">VulnShield Scanner</h3>
                             </div>
                             <form id="scanForm" class="w-full space-y-4" method="POST" action="/">
+                                <div class="relative flex justify-end">
+                                    <button id="protocol-info-btn" type="button" aria-label="Información de protocolos"
+                                        class="h-7 w-7 rounded-full border border-primary/60 text-primary hover:bg-primary hover:text-background-dark transition-colors flex items-center justify-center text-xs font-black">
+                                        i
+                                    </button>
+                                    <div id="protocol-info-popup"
+                                        class="protocol-help-popup absolute top-9 right-0 w-full max-w-md p-3 rounded-lg text-xs z-40">
+                                        <p class="font-bold mb-1">Protocolos para el escaneo:</p>
+                                        <ul class="space-y-1">
+                                            <li><strong>HTTPS:</strong> recomendado porque cifra la comunicación y
+                                                protege los datos durante el análisis.</li>
+                                            <li><strong>HTTP:</strong> úsalo solo si el sitio no tiene HTTPS o para
+                                                pruebas internas, ya que no cifra la conexión.</li>
+                                        </ul>
+                                    </div>
+                                </div>
                                 <div
                                     class="flex flex-col md:flex-row gap-0 rounded-lg overflow-hidden border border-accent-dark/50">
                                     <select id="protocoloInput"
@@ -358,6 +398,25 @@
             </main>
         </div>
     </div>
+    <script>
+            (function () {
+                const infoBtn = document.getElementById('protocol-info-btn');
+                const infoPopup = document.getElementById('protocol-info-popup');
+
+                if (!infoBtn || !infoPopup) return;
+
+                infoBtn.addEventListener('click', function (event) {
+                    event.stopPropagation();
+                    infoPopup.classList.toggle('show-popup');
+                });
+
+                document.addEventListener('click', function (event) {
+                    if (!infoPopup.contains(event.target) && !infoBtn.contains(event.target)) {
+                        infoPopup.classList.remove('show-popup');
+                    }
+                });
+            })();
+    </script>
     <script src="{{ url_for('static', filename='js/dashboard-scan.js') }}"></script>
 </body>
 
