@@ -61,6 +61,11 @@ def _limpiar_estado_recuperacion():
 
 @auth_bp.route('/inisesion')
 def inisesion():
+    if session.get('admin_id'):
+        if session.get('admin_inrol'):
+            return redirect(url_for('admin.admin_home'))
+        return redirect(url_for('scan.dashboard'))
+
     from flask import make_response
     response = render_template('inisesion.html')
     resp = make_response(response)
@@ -78,6 +83,11 @@ def logout():
 
 @auth_bp.route('/recuperar-contrasena', methods=['GET'])
 def recuperar_contrasena_view():
+    if session.get('admin_id'):
+        if session.get('admin_inrol'):
+            return redirect(url_for('admin.admin_home'))
+        return redirect(url_for('scan.dashboard'))
+
     return render_template('recuperar_contrasena.html')
 
 

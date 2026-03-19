@@ -181,12 +181,14 @@ def _construir_resumen_pdf(reporte):
     puntaje_raw = 100 - (total * 20)
     puntaje = max(0, min(100, puntaje_raw))
 
-    if total == 0:
-        riesgo = 'Bajo'
-    elif total <= 2:
+    if severidades['Critico'] > 0:
+        riesgo = 'Critico'
+    elif severidades['Alto'] > 0:
+        riesgo = 'Alto'
+    elif severidades['Medio'] > 0:
         riesgo = 'Medio'
     else:
-        riesgo = 'Elevado'
+        riesgo = 'Bajo'
 
     total_conteo = max(1, total)
     grafica = [
@@ -313,6 +315,8 @@ def api_escanear():
             'escaneos_hoy_bd': metricas_usuario['escaneos_hoy'],
         })
 
+    except motor_escaneo.ScanConnectivityError as e:
+        return jsonify({'error': str(e)}), 504
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
@@ -512,7 +516,12 @@ def escaneos():
 # ============================================
 @scan_bp.route('/', methods=['GET'])
 def root_redirect():
-    """Página principal pública - siempre muestra landingpage.html"""
+    """Página principal pública; si hay sesión activa, mantiene al usuario en su panel."""
+    if session.get('admin_id'):
+        if session.get('admin_inrol'):
+            return redirect(url_for('admin.admin_home'))
+        return redirect(url_for('scan.dashboard'))
+
     return render_template('landingpage.html')
 
 

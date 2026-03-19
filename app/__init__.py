@@ -81,6 +81,25 @@ def create_app():
         '/api/',
     )
 
+    rutas_admin_prefijos = (
+        '/admin',
+        '/admin_home',
+        '/api/dashboard-data',
+        '/api/administradores',
+    )
+
+    rutas_usuario_prefijos = (
+        '/dashboard',
+        '/escaneos',
+        '/configuracion',
+        '/reportes',
+        '/api/escanear',
+        '/api/historial-escaneos',
+        '/api/verificar-url',
+        '/api/reportes',
+        '/api/usuario',
+    )
+
     @app.before_request
     def proteger_rutas_sesion():
         path = request.path or ''
@@ -110,6 +129,22 @@ def create_app():
             if path.startswith('/api/'):
                 return jsonify({'error': 'No autorizado'}), 401
             return redirect(url_for('auth.inisesion'))
+
+        es_admin = bool(session.get('admin_inrol'))
+        es_ruta_admin = any(path.startswith(prefijo)
+                            for prefijo in rutas_admin_prefijos)
+        es_ruta_usuario = any(path.startswith(prefijo)
+                              for prefijo in rutas_usuario_prefijos)
+
+        if es_ruta_admin and not es_admin:
+            if path.startswith('/api/'):
+                return jsonify({'error': 'Prohibido: ruta solo para administradores'}), 403
+            return redirect(url_for('scan.dashboard'))
+
+        if es_ruta_usuario and es_admin:
+            if path.startswith('/api/'):
+                return jsonify({'error': 'Prohibido: ruta solo para usuarios'}), 403
+            return redirect(url_for('admin.admin_home'))
 
         return None
 

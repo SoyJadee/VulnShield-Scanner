@@ -403,18 +403,21 @@ def crear_administrador(usuario, contrasena_hash, email, es_admin=False):
 
     cursor = conexion.cursor()
     try:
+        email_normalizado = str(email or '').strip().lower()
+        usuario_normalizado = str(usuario or '').strip().lower()
+
         # Validar unicidad de correo
         cursor.execute(
-            'SELECT 1 FROM "Usuario" WHERE correo = %s',
-            (email,),
+            'SELECT 1 FROM "Usuario" WHERE LOWER(TRIM(correo)) = %s',
+            (email_normalizado,),
         )
         if cursor.fetchone():
             return {'ok': False, 'error': 'El correo ya se encuentra registrado'}
 
         # Validar unicidad de usuario (opcional, por si quieres que sea único)
         cursor.execute(
-            'SELECT 1 FROM "Usuario" WHERE username = %s',
-            (usuario,),
+            'SELECT 1 FROM "Usuario" WHERE LOWER(TRIM(username)) = %s',
+            (usuario_normalizado,),
         )
         if cursor.fetchone():
             return {'ok': False, 'error': 'El nombre de usuario ya se encuentra registrado'}
@@ -425,7 +428,7 @@ def crear_administrador(usuario, contrasena_hash, email, es_admin=False):
             VALUES (%s, %s, %s, %s)
             RETURNING "idUsuario"
             ''',
-            (usuario, email, contrasena_hash, es_admin),
+            (usuario, email_normalizado, contrasena_hash, es_admin),
         )
         nuevo_id = cursor.fetchone()[0]
         conexion.commit()
@@ -1014,15 +1017,16 @@ def existe_usuario(usuario, usuario_id_excluir=None):
 
     cursor = conexion.cursor()
     try:
+        usuario_normalizado = str(usuario or '').strip().lower()
         if usuario_id_excluir:
             cursor.execute(
-                'SELECT 1 FROM "Usuario" WHERE username = %s AND "idUsuario" != %s',
-                (usuario, usuario_id_excluir)
+                'SELECT 1 FROM "Usuario" WHERE LOWER(TRIM(username)) = %s AND "idUsuario" != %s',
+                (usuario_normalizado, usuario_id_excluir)
             )
         else:
             cursor.execute(
-                'SELECT 1 FROM "Usuario" WHERE username = %s',
-                (usuario,)
+                'SELECT 1 FROM "Usuario" WHERE LOWER(TRIM(username)) = %s',
+                (usuario_normalizado,)
             )
         return cursor.fetchone() is not None
     except Exception as e:
@@ -1041,15 +1045,16 @@ def existe_email(email, usuario_id_excluir=None):
 
     cursor = conexion.cursor()
     try:
+        email_normalizado = str(email or '').strip().lower()
         if usuario_id_excluir:
             cursor.execute(
-                'SELECT 1 FROM "Usuario" WHERE correo = %s AND "idUsuario" != %s',
-                (email, usuario_id_excluir)
+                'SELECT 1 FROM "Usuario" WHERE LOWER(TRIM(correo)) = %s AND "idUsuario" != %s',
+                (email_normalizado, usuario_id_excluir)
             )
         else:
             cursor.execute(
-                'SELECT 1 FROM "Usuario" WHERE correo = %s',
-                (email,)
+                'SELECT 1 FROM "Usuario" WHERE LOWER(TRIM(correo)) = %s',
+                (email_normalizado,)
             )
         return cursor.fetchone() is not None
     except Exception as e:

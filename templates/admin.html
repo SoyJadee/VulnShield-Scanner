@@ -276,7 +276,6 @@
         <div class="bg-[#0f172a] p-6 rounded-2xl border border-slate-800">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="text-lg font-bold">Gestión de Administradores</h2>
-                <span class="text-xs text-slate-400">Solo el administrador principal puede gestionar</span>
             </div>
 
             <!-- Formulario para crear administrador -->
@@ -615,14 +614,10 @@
 
                 if (severidad.includes('cr') || severidad.includes('alto')) {
                     badgeClass = 'bg-red-600 text-white';
-                } else if (
-                    severidad.includes('medio') ||
-                    severidad.includes('bajo') ||
-                    severidad.includes('xss') ||
-                    severidad.includes('advert') ||
-                    severidad.includes('warning')
-                ) {
+                } else if (severidad.includes('medio')) {
                     badgeClass = 'bg-orange-500 text-white';
+                } else if (severidad.includes('bajo')) {
+                    badgeClass = 'bg-green-600 text-white';
                 }
 
                 html += `

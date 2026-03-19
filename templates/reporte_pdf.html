@@ -101,6 +101,11 @@
             font-weight: bold;
         }
 
+        .risk-critical {
+            color: #b91c1c;
+            font-weight: bold;
+        }
+
         .chart-table {
             width: 100%;
             border-collapse: collapse;
@@ -254,6 +259,10 @@
                     <span class="kpi-value risk-low">{{ resumen.riesgo }}</span>
                     {% elif resumen.riesgo == 'Medio' %}
                     <span class="kpi-value risk-medium">{{ resumen.riesgo }}</span>
+                    {% elif resumen.riesgo == 'Alto' %}
+                    <span class="kpi-value risk-high">{{ resumen.riesgo }}</span>
+                    {% elif resumen.riesgo == 'Critico' %}
+                    <span class="kpi-value risk-critical">{{ resumen.riesgo }}</span>
                     {% else %}
                     <span class="kpi-value risk-high">{{ resumen.riesgo }}</span>
                     {% endif %}

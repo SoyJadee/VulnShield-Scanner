@@ -82,7 +82,7 @@ def api_crear_administrador():
     datos = request.get_json() or {}
 
     usuario = str(datos.get('usuario', '')).strip()
-    email = str(datos.get('email', '')).strip()
+    email = str(datos.get('email', '')).strip().lower().replace(' ', '')
     contrasena = str(datos.get('contrasena', '')).strip()
 
     # Validaciones
@@ -109,7 +109,7 @@ def api_crear_administrador():
 
     # Verificar que el email no exista
     if base_datos.existe_email(email):
-        return jsonify({'error': 'El correo electrónico ya está registrado'}), 400
+        return jsonify({'error': 'Ese correo ya está siendo utilizado por otro usuario o administrador'}), 400
 
     # Verificar que el usuario no exista
     if base_datos.existe_usuario(usuario):

@@ -104,9 +104,10 @@
 
         {% if ns.riesgo_rank <= 1 %} {% set riesgo_texto='RIESGO BAJO' %} {% set riesgo_color='text-emerald-300' %} {%
             set anillo_color='border-emerald-400/40' %} {% elif ns.riesgo_rank==2 %} {% set riesgo_texto='RIESGO MEDIO'
-            %} {% set riesgo_color='text-yellow-300' %} {% set anillo_color='border-yellow-400/40' %} {% else %} {% set
-            riesgo_texto='RIESGO ELEVADO' %} {% set riesgo_color='text-red-300' %} {% set
-            anillo_color='border-red-400/40' %} {% endif %} <div
+            %} {% set riesgo_color='text-yellow-300' %} {% set anillo_color='border-yellow-400/40' %} {% elif
+            ns.riesgo_rank==3 %} {% set riesgo_texto='RIESGO ALTO' %} {% set riesgo_color='text-orange-300' %} {% set
+            anillo_color='border-orange-400/40' %} {% else %} {% set riesgo_texto='RIESGO CRITICO' %} {% set
+            riesgo_color='text-red-300' %} {% set anillo_color='border-red-400/40' %} {% endif %} <div
             class="no-print sticky top-0 z-30 bg-slate-900/50 border-b border-slate-800 backdrop-blur-sm">
             <div class="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
                 <!-- Botón Volver al Historial (izquierda) -->
