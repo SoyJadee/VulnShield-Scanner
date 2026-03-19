@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Acceso Dual - VulnShield</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -22,6 +23,7 @@
         #form-toggle:checked ~ .switch-wrapper .switch-label .text-register { opacity: 1; }
 
         body {
+            font-family: 'Space Grotesk', sans-serif;
             background: var(--c1);
             color: var(--c2);
         }
@@ -138,7 +140,10 @@
         <div class="flex items-center justify-center gap-4 pt-8 pb-4">
             <a href="/" class="flex items-center gap-4 text-white hover:text-gray-300 transition-colors">
                 <div class="text-primary flex items-center justify-center">
-                    <span class="material-symbols-outlined text-4xl">shield_with_heart</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M20 13c0 5-3.5 7.5-8 9c-4.5-1.5-8-4-8-9V6l8-3l8 3z"></path>
+                        <path d="m9 12l2 2l4-4"></path>
+                    </svg>
                 </div>
                 <h1 class="text-2xl font-bold leading-tight tracking-tight">VulnShield Scanner</h1>
             </a>
@@ -179,6 +184,12 @@
                             La contraseña no puede estar vacía.
                         </p>
                         <p id="login-error" class="error-text mt-2 text-[10px] hidden"></p>
+                        <div class="mt-2 flex justify-end">
+                            <button id="forgot-password-btn" type="button" class="text-xs font-semibold text-[#38aecc] hover:text-white transition-colors">
+                                Olvidé mi contraseña
+                            </button>
+                        </div>
+                        <p id="forgot-password-help" class="error-text mt-2 text-[10px] hidden"></p>
                     </div>
                     <button type="submit" class="action-btn w-full py-3 rounded-lg transition-all">Iniciar Sesión</button>
                 </form>
@@ -255,6 +266,8 @@
         const loginCorreoError = document.getElementById('login-correo-error');
         const loginPasswordError = document.getElementById('login-password-error');
         const loginError = document.getElementById('login-error');
+        const forgotPasswordBtn = document.getElementById('forgot-password-btn');
+        const forgotPasswordHelp = document.getElementById('forgot-password-help');
         
         const toggleLoginPassword = document.getElementById('toggle-login-password');
         const regUsuario = document.getElementById('reg-usuario');
@@ -312,6 +325,13 @@
         
         bindPasswordToggle(toggleLoginPassword, loginPassword);
         bindPasswordToggle(toggleRegisterPassword, regPassword);
+
+        if (forgotPasswordBtn && forgotPasswordHelp) {
+            forgotPasswordBtn.addEventListener('click', () => {
+                forgotPasswordHelp.textContent = 'Recuperación de contraseña no disponible aún. Contacta al administrador o crea una cuenta nueva.';
+                forgotPasswordHelp.classList.remove('hidden');
+            });
+        }
 
         regEmail.addEventListener('input', function() {
             setErrorStyle(this, regEmailError, this.value.length > 0 && !validateEmail(this.value));
